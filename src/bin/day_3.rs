@@ -23,25 +23,19 @@ fn process_input() -> (Vec<String>, Vec<bool>) {
         .lines()
         .map(String::from)
         .collect();
-    let count_and_ones: Vec<usize> = lines
-        .iter()
-        .map(|line| format!("1{line}"))
-        .fold(None, |ones: Option<Vec<usize>>, line| {
-            let all_zeros = iter::repeat(0).take(line.len());
-            let ones = ones
-                .unwrap_or_else(|| all_zeros.collect())
-                .iter()
+    let ones: Vec<usize> = lines.iter().fold(
+        iter::repeat(0).take(lines[0].len()).collect(),
+        |ones: Vec<usize>, line: &String| {
+            ones.iter()
                 .zip(line.chars())
                 .map(|(count, c)| match c {
                     '0' => *count,
                     '1' => *count + 1,
                     _ => panic!("Character must be a 0 or 1."),
                 })
-                .collect();
-            Some(ones)
-        })
-        .expect("File has zero lines.");
-    let (count, ones) = (count_and_ones[0], &count_and_ones[1..]);
-    let more_ones: Vec<bool> = ones.iter().map(|ones| ones * 2 >= count).collect();
+                .collect()
+        },
+    );
+    let more_ones: Vec<bool> = ones.iter().map(|ones| ones * 2 >= lines.len()).collect();
     (lines, more_ones)
 }
