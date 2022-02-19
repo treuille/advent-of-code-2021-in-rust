@@ -39,34 +39,48 @@ fn main() {
     // let n_boards = boards.len();
     // let won = vec![false; n_boards];
 
-    let results = guesses
-        .iter()
-        .flat_map(|&guess| {
-            // println!("guess: {guess}");
-            boards
-                .iter()
-                .zip(marks.iter_mut())
-                .filter_map(|(board, the_marks)| match board_is_solved(the_marks) {
-                    false => Some((board, the_marks)),
-                    true => None,
-                })
-                .filter_map(|(board, the_marks)| {
-                    if let Some(idx) = find_in_board(board, guess) {
-                        the_marks[idx] = true;
-                        if board_is_solved(the_marks) {
-                            println!("board:\n{board}");
-                            println!("marks:\n{the_marks}");
-                            Some(unmarked_sum(board, the_marks))
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                })
-        })
-        .collect::<Vec<_>>();
-    println!("results: {:?}", results);
+    let mut first_result = None;
+    let mut last_result = None;
+    for guess in guesses {
+        for (board, marks) in boards.iter().zip(marks.iter_mut()) {
+            if board_is_solved(marks) {
+                continue;
+            }
+            if let Some(idx) = find_in_board(board, guess) {
+                marks[idx] = true;
+                if board_is_solved(marks) {
+                    println!("board:\n{board}");
+                    println!("marks:\n{marks}");
+                    let result = unmarked_sum(board, marks) * guess;
+                    first_result.get_or_insert(result);
+                    last_result = Some(result);
+                }
+            }
+        }
+    }
+    match (first_result, last_result) {
+        (Some(first_result), Some(last_result)) => {
+            println!("first_result: {first_result}");
+            println!("last_result: {last_result}");
+        }
+        _ => panic!("no resutls"),
+    };
+    // let results = guesses
+    //     .iter()
+    // let result = unmarked_sum(board, marks) * guess;
+    //         // println!("guess: {guess}");
+    //         boards
+    //             .iter()
+    //             .zip(marks.iter_mut())
+    //             .filter_map(|(board, the_marks)| match
+    //                 false => Some((board, the_marks)),
+    //                 true => None,
+    //             })
+    //             .filter_map(|(board, the_marks)| {
+    //             })
+    //     })
+    //     .collect::<Vec<_>>();
+    // println!("results: {:?}", results);
     // won.iter()
     //     .enumerate()
     //     .filter_map(|(i, did_win)| match did_win {
