@@ -1,7 +1,5 @@
-// use std::error::Error;
 use ndarray::{Array, Array2, Axis};
-// use std::num::ParseIntError;
-// use std::str::FromStr;
+use std::iter;
 
 fn main() {
     let input = include_str!("../../puzzle_inputs/day_4.txt");
@@ -17,7 +15,7 @@ fn main() {
     println!("last:\n{:?}", boards.last());
     println!("last:\n{:?}", boards.last().unwrap().shape());
 
-    let marks: Vec<Array2<bool>> = boards
+    let mut marks: Vec<Array2<bool>> = boards
         .iter()
         .map(|board| match board.shape() {
             [w, h] => Array2::default((*w, *h)),
@@ -30,19 +28,67 @@ fn main() {
     // println!("last:\n{:?}", found.last());
     // println!("last:\n{:?}", found.last().unwrap().shape());
 
-    let first = boards.first().unwrap();
-    println!("first:\n{:?}", first);
-    let idx = find_in_board(first, 18);
-    if let Some((i, j)) = idx {
-        println!("The solution is {}", first[(i, j)]);
-    }
-    println!("solved: {:?}", idx);
+    // let first = boards.first().unwrap();
+    // println!("first:\n{:?}", first);
+    // let idx = find_in_board(first, 18);
+    // if let Some((i, j)) = idx {
+    //     println!("The solution is {}", first[(i, j)]);
+    // }
+    // println!("solved: {:?}", idx);
+    //
+    // let n_boards = boards.len();
+    // let won = vec![false; n_boards];
 
-    // first[(0, 0)] = true;
-    // first[(0, 1)] = true;
-    // first[(0, 2)] = true;
-    // first[(0, 3)] = true;
-    // first[(0, 4)] = true;
+    let results = guesses
+        .iter()
+        .flat_map(|&guess| {
+            // println!("guess: {guess}");
+            boards
+                .iter()
+                .zip(marks.iter_mut())
+                .filter_map(|(board, the_marks)| match board_is_solved(the_marks) {
+                    false => Some((board, the_marks)),
+                    true => None,
+                })
+                .filter_map(|(board, the_marks)| {
+                    if let Some(idx) = find_in_board(board, guess) {
+                        the_marks[idx] = true;
+                        if board_is_solved(the_marks) {
+                            println!("board:\n{board}");
+                            println!("marks:\n{the_marks}");
+                            Some(unmarked_sum(board, the_marks))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+        })
+        .collect::<Vec<_>>();
+    println!("results: {:?}", results);
+    // won.iter()
+    //     .enumerate()
+    //     .filter_map(|(i, did_win)| match did_win {
+    //         false => Some((i, boards[i], marks[i])),
+    //         true => None,
+    //     })
+    //     .filter_map(|(i, board, mark)| {
+    //         if
+    //             }
+    //         }
+    //         None
+    //     })
+    //     .for_each(|result| {
+    //         println!("All done: {result} (6592)");
+    //     })
+    // }
+    // println!("Unable to find a solution.");
+    // // first[(0, 0)] = true;
+    // // first[(0, 1)] = true;
+    // // first[(0, 2)] = true;
+    // // first[(0, 3)] = true;
+    // // first[(0, 4)] = true;
 }
 
 fn board_from_str(s: &str) -> Array2<usize> {
@@ -77,6 +123,34 @@ fn board_is_solved(marks: &Array2<bool>) -> bool {
         .chain(marks.axis_iter(Axis(1)))
         .any(|row_or_col| row_or_col.iter().all(|&x| x))
 }
+
+/// Returns the sum of all unmarked items on the board.
+fn unmarked_sum(board: &Array2<usize>, marks: &Array2<bool>) -> usize {
+    println!("board:\n{board}");
+    println!("{:?}", board.iter().collect::<Vec<_>>());
+    println!("marks:\n{marks}");
+    println!("{:?}", marks.iter().collect::<Vec<_>>());
+    let x: usize = board
+        .iter()
+        .zip(marks.iter())
+        .filter_map(|(elt, mark)| match mark {
+            false => Some(elt),
+            true => None,
+        })
+        .sum();
+    println!("sum1: {:?}", x);
+
+    // println!("sum2: {:?}", x.sum());
+    board
+        .iter()
+        .zip(marks.iter())
+        .filter_map(|(elt, mark)| match mark {
+            false => Some(elt),
+            true => None,
+        })
+        .sum()
+}
+
 // #[derive(Debug)]
 // struct Board {
 //     w: usize,
