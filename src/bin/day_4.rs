@@ -13,24 +13,22 @@ fn main() {
         .scan(boards, |boards, guess| {
             let guess: usize = guess.parse().unwrap();
             let mut results = Vec::new();
-            let mut new_boards: Vec<Board> = boards
+            let mut remaining_boards: Vec<Board> = boards
                 .drain(..)
-                .filter_map(|mut board| {
-                    if board.mark(guess) {
-                        let result = board.unmarked_sum() * guess;
-                        results.push(result);
+                .filter_map(|mut board| match board.mark(guess) {
+                    true => {
+                        results.push(board.unmarked_sum() * guess);
                         None
-                    } else {
-                        Some(board)
                     }
+                    false => Some(board),
                 })
                 .collect();
-            mem::swap(boards, &mut new_boards);
+            mem::swap(boards, &mut remaining_boards);
             Some(results.into_iter())
         })
         .flatten();
-    println!("first_result: {} (6592)", results_iter.next().unwrap());
-    println!("last_result: {} (31755)", results_iter.last().unwrap());
+    println!("Puzzle 4a: {} (6592)", results_iter.next().unwrap());
+    println!("Puzzle 4b: {} (31755)", results_iter.last().unwrap());
 }
 
 struct Board {
