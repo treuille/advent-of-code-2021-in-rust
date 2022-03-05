@@ -1,4 +1,5 @@
-// use splr::Certificate;
+use splr::Certificate;
+use std::clone::Clone;
 use std::collections::HashMap;
 use std::ops::Neg;
 
@@ -78,9 +79,86 @@ struct Entry {
 /// One line of the puzzle
 impl Entry {
     fn new() -> Self {
-        let mut clauses: Vec<Vec<i32>> = Vec::new();
+        let mut myself = Self {
+            clauses: Vec::new(),
+        };
+        // Each pattern must represent *exactly* one digit.
+        myself.create_bijection(0..10, |pattern, digit| Proposition::PatternIsDigit {
+            pattern,
+            digit,
+        });
 
-        Self { clauses }
+        // Each wire must represent *exactly* one segment.
+        myself.create_bijection('a'..='g', |wire, segment| Proposition::WireIsSegment {
+            wire,
+            segment,
+        });
+
+        myself
+    }
+
+    fn create_bijection<T, R, F>(&mut self, range: R, to_proposition: F)
+    where
+        T: PartialEq + Eq + Copy,
+        R: Iterator<Item = T> + Clone,
+        F: Fn(T, T) -> Proposition,
+    {
+        // There must be at least one arrow from every element in the domain.
+        for x in range.clone() {
+            self.clauses.push(
+                range
+                    .clone()
+                    .map(|y| to_proposition(x, y).to_index())
+                    .collect(),
+            );
+        }
+
+        // There cannot be two arrows from any element in the domain
+        for x in range.clone() {
+            for y1 in range.clone() {
+                for y2 in range.clone() {
+                    if y1 != y2 {
+                        self.clauses.push(vec![
+                            to_proposition(x, y1).negation_to_index(),
+                            to_proposition(x, y2).negation_to_index(),
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // There cannot be two arrows into any element in the domain
+        for x1 in range.clone() {
+            for x2 in range.clone() {
+                if x1 != x2 {
+                    for y in range.clone() {
+                        self.clauses.push(vec![
+                            to_proposition(x1, y).negation_to_index(),
+                            to_proposition(x2, y).negation_to_index(),
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Returns a vector of propositions which solves this entry.
+    fn solve(&self) -> Vec<Proposition> {
+        match Certificate::try_from(self.clauses.clone()).unwrap() {
+            Certificate::UNSAT => {
+                panic!("Not satisfied.");
+            }
+            Certificate::SAT(soln) => soln
+                .iter()
+                .filter_map(|&index| {
+                    if index > 0 {
+                        Some(Proposition::from_index(index))
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+        }
     }
 }
 
@@ -117,96 +195,64 @@ fn get_digits_to_segemets() -> HashMap<u8, &'static [char]> {
 }
 
 fn main() {
-    let mut props: Vec<Proposition> = Vec::new();
-    for pattern in 0u8..10u8 {
-        for digit in 0u8..10u8 {
-            props.push(Proposition::PatternIsDigit { pattern, digit });
-        }
+    let entry = Entry::new();
+    let soln = entry.solve();
+    println!("There are {} solutions.", soln.len());
+    for prop in soln {
+        println!("{prop:?}");
     }
-
-    for wire in 'a'..='g' {
-        for segment in 'a'..='g' {
-            props.push(Proposition::WireIsSegment { wire, segment });
-        }
-    }
-
-    for prop in props {
-        println!(
-            "{prop:?} -> {} / {}",
-            prop.to_index(),
-            prop.negation_to_index(),
-        );
-        println!("{:?}", Proposition::from_index(prop.to_index()));
-    }
-    // enum Proposition {
-    //     /// True if `pattern` represents digit `digit`.
-    //     PatternIsDigit { pattern: u8, digit: u8 },
-
-    //     /// True if `wire` maps to `segment`.
-    //     WireIsSegment { wire: char, segment: char },
-    // }
     panic!("Just playing around.");
 
-    let digits_to_segments = get_digits_to_segemets();
-    for digit in 0u8..=9u8 {
-        println!("{digit} -> {}", digits_to_segments[&digit].len());
-    }
+    //let digits_to_segments = get_digits_to_segemets();
+    //for digit in 0u8..=9u8 {
+    //    println!("{digit} -> {}", digits_to_segments[&digit].len());
+    //}
 
-    let segements_to_digits: HashMap<&[char], u8> =
-        HashMap::from_iter(digits_to_segments.iter().map(|(&k, &v)| (v, k)));
+    //let segements_to_digits: HashMap<&[char], u8> =
+    //    HashMap::from_iter(digits_to_segments.iter().map(|(&k, &v)| (v, k)));
 
-    println!("segements_to_digits: {segements_to_digits:?}");
+    //println!("segements_to_digits: {segements_to_digits:?}");
 
-    // let v: Vec<Vec<i32>> = vec![vec![-1], vec![1, 2], vec![-1, 3], vec![1, -3], vec![-1, 2]];
-    // match Certificate::try_from(v).unwrap() {
-    //     Certificate::UNSAT => {
-    //         println!("Not satisfied.");
-    //     }
-    //     Certificate::SAT(vec) => {
-    //         println!("Satisfied: {:?}", vec);
-    //     }
-    // };
+    //let count = include_str!("../../puzzle_inputs/day_8.txt")
+    //    .lines()
+    //    .fold(0, |sum, line| {
+    //        println!("{}", line);
+    //        let (patterns, output) = line.split_once("|").unwrap();
+    //        println!("patterns: {patterns}");
+    //        println!("output: {output}");
+    //        let blah: Vec<_> = output.split_whitespace().collect();
+    //        println!("blah: {blah:?}");
+    //        panic!("First iteration.");
 
-    let count = include_str!("../../puzzle_inputs/day_8.txt")
-        .lines()
-        .fold(0, |sum, line| {
-            println!("{}", line);
-            let (patterns, output) = line.split_once("|").unwrap();
-            println!("patterns: {patterns}");
-            println!("output: {output}");
-            let blah: Vec<_> = output.split_whitespace().collect();
-            println!("blah: {blah:?}");
-            panic!("First iteration.");
+    //        // For each pattern:
+    //        // 1. Each `pattern` has to be a `digit` 0-9
+    //        // 2. No `pattern` can be two `digit`s
 
-            // For each pattern:
-            // 1. Each `pattern` has to be a `digit` 0-9
-            // 2. No `pattern` can be two `digit`s
+    //        // For each wire
+    //        // 1. Each wire has to be one segment
+    //        // 2. No wire can be two segments
+    //        // 3. If the `pattern` is `digit`, and the pattern contains `wire,`
+    //        //    then `wire` must be a segment in `digit`
+    //        //    aka pattern is digit => (for each wire in pattern)
+    //        //        (for all segments s1, s2, ... in digit) wire is s1 || wire is s2
+    //        //    aka for each wire in pattern
+    //        //           for all segments s NOT IN digit
+    //        //              pattern is digit => wire IS NOT segment
+    //        //    aka for each wire in pattern
+    //        //           for all segments s NOT IN digit
+    //        //              pattern IS NOT digit || wire IS NOT segment
+    //        //
 
-            // For each wire
-            // 1. Each wire has to be one segment
-            // 2. No wire can be two segments
-            // 3. If the `pattern` is `digit`, and the pattern contains `wire,`
-            //    then `wire` must be a segment in `digit`
-            //    aka pattern is digit => (for each wire in pattern)
-            //        (for all segments s1, s2, ... in digit) wire is s1 || wire is s2
-            //    aka for each wire in pattern
-            //           for all segments s NOT IN digit
-            //              pattern is digit => wire IS NOT segment
-            //    aka for each wire in pattern
-            //           for all segments s NOT IN digit
-            //              pattern IS NOT digit || wire IS NOT segment
-            //
-
-            // let count = output
-            //     .split_whitespace()
-            //     .filter(|&s| {
-            //         let x = s.len();
-            //         x == 2 || x == 3 || x == 4 || x == 7
-            //     })
-            //     .count();
-            // sum + count
-        });
-    println!("count: {count}");
+    //        // let count = output
+    //        //     .split_whitespace()
+    //        //     .filter(|&s| {
+    //        //         let x = s.len();
+    //        //         x == 2 || x == 3 || x == 4 || x == 7
+    //        //     })
+    //        //     .count();
+    //        // sum + count
+    //    });
+    //println!("count: {count}");
 }
 
 #[allow(dead_code)]
