@@ -195,64 +195,71 @@ fn get_digits_to_segemets() -> HashMap<u8, &'static [char]> {
 }
 
 fn main() {
-    let entry = Entry::new();
-    let soln = entry.solve();
-    println!("There are {} solutions.", soln.len());
-    for prop in soln {
-        println!("{prop:?}");
-    }
-    panic!("Just playing around.");
+    include_str!("../../puzzle_inputs/day_8.txt")
+        .lines()
+        .for_each(|line| {
+            let (patterns, output) = line.split_once("|").unwrap();
+            println!("patterns: {patterns}");
+            println!("output: {output}");
+            let blah: Vec<_> = output.split_whitespace().collect();
+            println!("blah: {blah:?}");
 
-    //let digits_to_segments = get_digits_to_segemets();
-    //for digit in 0u8..=9u8 {
-    //    println!("{digit} -> {}", digits_to_segments[&digit].len());
-    //}
+            let entry = Entry::new();
+            for (pattern, chars) in patterns.split_whitespace().enumerate() {
+                println!("{pattern} -> {chars}");
+                for digit in 0..10 {}
+            }
+            //
+            // let soln = entry.solve();
+            // println!("There are {} solutions.", soln.len());
+            // for prop in soln {
+            //     println!("{prop:?}");
+            // }
+            // panic!("Just playing around.");
+
+            panic!("First iteration.");
+        });
+    //.fold(0, |sum, line| {
+    //    println!("{}", line);
+
+    //    // For each pattern:
+    //    // 1. Each `pattern` has to be a `digit` 0-9
+    //    // 2. No `pattern` can be two `digit`s
+
+    //    // For each wire
+    //    // 1. Each wire has to be one segment
+    //    // 2. No wire can be two segments
+    //    // 3. If the `pattern` is `digit`, and the pattern contains `wire,`
+    //    //    then `wire` must be a segment in `digit`
+    //    //    aka pattern is digit => (for each wire in pattern)
+    //    //        (for all segments s1, s2, ... in digit) wire is s1 || wire is s2
+    //    //    aka for each wire in pattern
+    //    //           for all segments s NOT IN digit
+    //    //              pattern is digit => wire IS NOT segment
+    //    //    aka for each wire in pattern
+    //    //           for all segments s NOT IN digit
+    //    //              pattern IS NOT digit || wire IS NOT segment
+    //    //
+
+    //    // let count = output
+    //    //     .split_whitespace()
+    //    //     .filter(|&s| {
+    //    //         let x = s.len();
+    //    //         x == 2 || x == 3 || x == 4 || x == 7
+    //    //     })
+    //    //     .count();
+    //    // sum + count
+    //});
+
+    // println!("count: {count}");
+    // let digits_to_segments = get_digits_to_segemets();
+    // for digit in 0u8..=9u8 {
+    //     println!("{digit} -> {}", digits_to_segments[&digit].len());
+    // }
 
     //let segements_to_digits: HashMap<&[char], u8> =
     //    HashMap::from_iter(digits_to_segments.iter().map(|(&k, &v)| (v, k)));
-
     //println!("segements_to_digits: {segements_to_digits:?}");
-
-    //let count = include_str!("../../puzzle_inputs/day_8.txt")
-    //    .lines()
-    //    .fold(0, |sum, line| {
-    //        println!("{}", line);
-    //        let (patterns, output) = line.split_once("|").unwrap();
-    //        println!("patterns: {patterns}");
-    //        println!("output: {output}");
-    //        let blah: Vec<_> = output.split_whitespace().collect();
-    //        println!("blah: {blah:?}");
-    //        panic!("First iteration.");
-
-    //        // For each pattern:
-    //        // 1. Each `pattern` has to be a `digit` 0-9
-    //        // 2. No `pattern` can be two `digit`s
-
-    //        // For each wire
-    //        // 1. Each wire has to be one segment
-    //        // 2. No wire can be two segments
-    //        // 3. If the `pattern` is `digit`, and the pattern contains `wire,`
-    //        //    then `wire` must be a segment in `digit`
-    //        //    aka pattern is digit => (for each wire in pattern)
-    //        //        (for all segments s1, s2, ... in digit) wire is s1 || wire is s2
-    //        //    aka for each wire in pattern
-    //        //           for all segments s NOT IN digit
-    //        //              pattern is digit => wire IS NOT segment
-    //        //    aka for each wire in pattern
-    //        //           for all segments s NOT IN digit
-    //        //              pattern IS NOT digit || wire IS NOT segment
-    //        //
-
-    //        // let count = output
-    //        //     .split_whitespace()
-    //        //     .filter(|&s| {
-    //        //         let x = s.len();
-    //        //         x == 2 || x == 3 || x == 4 || x == 7
-    //        //     })
-    //        //     .count();
-    //        // sum + count
-    //    });
-    //println!("count: {count}");
 }
 
 #[allow(dead_code)]
