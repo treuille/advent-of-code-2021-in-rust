@@ -1,5 +1,4 @@
 fn main() {
-    println!("Hello, world.");
     let mut input: Vec<isize> = include_str!("../../puzzle_inputs/day_7.txt")
         .trim()
         .split(',')
