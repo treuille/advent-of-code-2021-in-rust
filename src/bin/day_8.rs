@@ -1,5 +1,6 @@
-use splr::Certificate;
-use std::collections::{HashMap, HashSet};
+// use splr::Certificate;
+use std::collections::HashMap;
+use std::ops::Neg;
 
 // digit -> segments
 // 0 -> 6
@@ -14,6 +15,7 @@ use std::collections::{HashMap, HashSet};
 // 9 -> 6
 
 /// All the potential propositions in this puzzle.
+#[derive(Debug, PartialEq, Eq)]
 enum Proposition {
     /// True if `pattern` represents digit `digit`.
     PatternIsDigit { pattern: u8, digit: u8 },
@@ -22,11 +24,64 @@ enum Proposition {
     WireIsSegment { wire: char, segment: char },
 }
 
-struct Puzzle {}
+impl Proposition {
+    const MAX_INDEX: i32 = 149;
 
-/// An mapping from puzzles to 
-impl Puzzle {
-    fn new()
+    /// The the index representing a proposition.
+    fn to_index(&self) -> i32 {
+        match *self {
+            Proposition::PatternIsDigit { pattern, digit } => {
+                let pattern = pattern as i32;
+                let digit = digit as i32;
+                10 * pattern + digit + 1
+            }
+            Proposition::WireIsSegment { wire, segment } => {
+                let a = 'a' as i32;
+                let wire = (wire as i32) - a;
+                let segment = (segment as i32) - a;
+                7 * wire + segment + 101
+            }
+        }
+    }
+
+    /// The the index representing the negation of a proposition.
+    fn negation_to_index(&self) -> i32 {
+        self.to_index().neg()
+    }
+
+    /// Converts a positive index back into a proposition
+    fn from_index(index: i32) -> Self {
+        if index <= 0 {
+            panic!("Indices must be positive.");
+        } else if index <= 100 {
+            Proposition::PatternIsDigit {
+                pattern: ((index - 1) / 10) as u8,
+                digit: ((index - 1) % 10) as u8,
+            }
+        } else if index <= Proposition::MAX_INDEX {
+            let a = 'a' as i32;
+            Proposition::WireIsSegment {
+                wire: ((((index - 101) / 7) + a) as u8) as char,
+                segment: ((((index - 101) % 7) + a) as u8) as char,
+            }
+        } else {
+            panic!("Index {} is too high.", index);
+        }
+    }
+}
+
+struct Entry {
+    /// The clauses of this entry in conjunctive normal form.
+    clauses: Vec<Vec<i32>>,
+}
+
+/// One line of the puzzle
+impl Entry {
+    fn new() -> Self {
+        let mut clauses: Vec<Vec<i32>> = Vec::new();
+
+        Self { clauses }
+    }
 }
 
 // /// Gets a mapping from digits to which segements the encompass.
@@ -62,6 +117,36 @@ fn get_digits_to_segemets() -> HashMap<u8, &'static [char]> {
 }
 
 fn main() {
+    let mut props: Vec<Proposition> = Vec::new();
+    for pattern in 0u8..10u8 {
+        for digit in 0u8..10u8 {
+            props.push(Proposition::PatternIsDigit { pattern, digit });
+        }
+    }
+
+    for wire in 'a'..='g' {
+        for segment in 'a'..='g' {
+            props.push(Proposition::WireIsSegment { wire, segment });
+        }
+    }
+
+    for prop in props {
+        println!(
+            "{prop:?} -> {} / {}",
+            prop.to_index(),
+            prop.negation_to_index(),
+        );
+        println!("{:?}", Proposition::from_index(prop.to_index()));
+    }
+    // enum Proposition {
+    //     /// True if `pattern` represents digit `digit`.
+    //     PatternIsDigit { pattern: u8, digit: u8 },
+
+    //     /// True if `wire` maps to `segment`.
+    //     WireIsSegment { wire: char, segment: char },
+    // }
+    panic!("Just playing around.");
+
     let digits_to_segments = get_digits_to_segemets();
     for digit in 0u8..=9u8 {
         println!("{digit} -> {}", digits_to_segments[&digit].len());
@@ -145,4 +230,37 @@ fn puzzle_8a() {
             sum + count
         });
     println!("count: {count}");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    /// Test that convert from propositions to indices and back works.
+    fn propositions_to_indices() {
+        for pattern in 0u8..10u8 {
+            for digit in 0u8..10u8 {
+                let prop = Proposition::PatternIsDigit { pattern, digit };
+                assert_eq!(prop, Proposition::from_index(prop.to_index()));
+            }
+        }
+
+        for wire in 'a'..='g' {
+            for segment in 'a'..='g' {
+                let prop = Proposition::WireIsSegment { wire, segment };
+                assert_eq!(prop, Proposition::from_index(prop.to_index()));
+            }
+        }
+    }
+
+    #[test]
+    /// Test that convert from indices to propositions and back works.
+    fn indices_to_propositions() {
+        for index in 1..=Proposition::MAX_INDEX {
+            let prop = Proposition::from_index(index);
+            assert_eq!(index, prop.to_index());
+            assert_eq!(index.neg(), prop.negation_to_index());
+        }
+    }
 }
