@@ -7,32 +7,25 @@ fn main() {
         .collect();
 
     input.sort();
+
+    // Puzzle A
     let median = input[input.len() / 2];
-
-    println!("{input:?}");
-
     let fuel_required: isize = input.iter().map(|x| isize::abs(x - median)).sum();
-    // let deltas: Vec<isize> = input.iter().map(|x| isize::abs(x - median)).collect();
-    // println!("{deltas:?}");
+    println!("Puzzle 7a: {} (328318)", fuel_required);
 
-    let mut requirements: Vec<(isize, isize)> = input
+    // Puzzle B
+    let fuel_required = input
         .iter()
         .map(|destination| {
-            (
-                input
-                    .iter()
-                    .map(|x| isize::abs(destination - x))
-                    .sum::<isize>(),
-                *destination,
-            )
+            input
+                .iter()
+                .map(|x| {
+                    let dist = isize::abs(destination - x);
+                    dist * (dist + 1) / 2
+                })
+                .sum::<isize>()
         })
-        .collect();
-
-    requirements.sort();
-    println!("{:?}", &requirements[0..10]);
-    println!("median: {median}");
-
-    // Run the simulations.
-    println!("Puzzle 7a: {} (328318)", fuel_required);
-    println!("Puzzle 7b: {} (1695929023803)", 456);
+        .min()
+        .unwrap();
+    println!("Puzzle 7b: {} (89791146)", fuel_required);
 }
