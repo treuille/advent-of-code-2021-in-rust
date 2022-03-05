@@ -1,6 +1,7 @@
 use splr::Certificate;
 use std::clone::Clone;
 use std::collections::HashMap;
+use std::iter;
 use std::ops::Neg;
 
 // digit -> segments
@@ -194,6 +195,10 @@ impl Entry {
 //     ])
 // }
 
+const DIGIT_SEGMENTS: [&str; 10] = [
+    "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
+];
+
 fn main() {
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
@@ -208,8 +213,12 @@ fn main() {
             for (pattern, chars) in patterns.split_whitespace().enumerate() {
                 let pattern = pattern as u8;
                 println!("{pattern} -> {chars}");
+                #[allow(clippy::never_loop)]
                 for wire in chars.chars() {
+                    entry.clauses.push(Vec::from_iter(iter::on));
+                    #[allow(clippy::never_loop)]
                     for digit in 0..10 {
+                        println!("[");
                         // Iterate over all segments NOT IN this digit
                         for segment in (match digit {
                             0u8 => "d",
@@ -233,18 +242,50 @@ fn main() {
                                 pattern_is_digit.to_index(),
                                 wire_is_segment.negation_to_index(),
                             ]);
+                            println!("  YES {pattern_is_digit:?}");
+                            println!("  NO  {wire_is_segment:?}");
                         }
+                        println!("]");
+                        break;
                     }
+                    // for digit in 0..10 {
+                    //     println!("[");
+                    //     // Iterate over all segments NOT IN this digit
+                    //     for segment in (match digit {
+                    //         0u8 => "d",
+                    //         1u8 => "abdeg",
+                    //         2u8 => "bf",
+                    //         3u8 => "be",
+                    //         4u8 => "aeg",
+                    //         5u8 => "ce",
+                    //         6u8 => "c",
+                    //         7u8 => "bdeg",
+                    //         8u8 => "",
+                    //         9u8 => "e",
+                    //         _ => panic!("Not a valid digit."),
+                    //     })
+                    //     .chars()
+                    //     {
+                    //         // pattern is digit => wire IS NOT segment
+                    //         let pattern_is_digit = Proposition::PatternIsDigit { pattern, digit };
+                    //         let wire_is_segment = Proposition::WireIsSegment { wire, segment };
+                    //         entry.clauses.push(vec![
+                    //             pattern_is_digit.to_index(),
+                    //             wire_is_segment.negation_to_index(),
+                    //         ]);
+                    //         println!("  YES {pattern_is_digit:?}");
+                    //         println!("  NO  {wire_is_segment:?}");
+                    //     }
+                    //     println!("]");
+                    //     break;
+                    // }
+                    break;
                 }
             }
-
-            //
-            // let soln = entry.solve();
-            // println!("There are {} solutions.", soln.len());
-            // for prop in soln {
-            //     println!("{prop:?}");
-            // }
-            // panic!("Just playing around.");
+            let soln = entry.solve();
+            for prop in soln {
+                println!("{prop:?}");
+            }
 
             panic!("First iteration.");
         });
