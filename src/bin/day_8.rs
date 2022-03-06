@@ -215,71 +215,21 @@ fn main() {
                 println!("{pattern} -> {chars}");
                 #[allow(clippy::never_loop)]
                 for wire in chars.chars() {
-                    entry.clauses.push(Vec::from_iter(iter::on));
-                    #[allow(clippy::never_loop)]
-                    for digit in 0..10 {
-                        println!("[");
-                        // Iterate over all segments NOT IN this digit
-                        for segment in (match digit {
-                            0u8 => "d",
-                            1u8 => "abdeg",
-                            2u8 => "bf",
-                            3u8 => "be",
-                            4u8 => "aeg",
-                            5u8 => "ce",
-                            6u8 => "c",
-                            7u8 => "bdeg",
-                            8u8 => "",
-                            9u8 => "e",
-                            _ => panic!("Not a valid digit."),
-                        })
-                        .chars()
-                        {
-                            // pattern is digit => wire IS NOT segment
-                            let pattern_is_digit = Proposition::PatternIsDigit { pattern, digit };
-                            let wire_is_segment = Proposition::WireIsSegment { wire, segment };
-                            entry.clauses.push(vec![
-                                pattern_is_digit.to_index(),
-                                wire_is_segment.negation_to_index(),
-                            ]);
-                            println!("  YES {pattern_is_digit:?}");
-                            println!("  NO  {wire_is_segment:?}");
-                        }
-                        println!("]");
-                        break;
+                    for (digit, segments) in DIGIT_SEGMENTS.iter().enumerate() {
+                        let digit = digit as u8;
+                        entry.clauses.push(Vec::from_iter(
+                            segments
+                                .chars()
+                                .map(|segment| {
+                                    let p = Proposition::WireIsSegment { wire, segment };
+                                    p.to_index()
+                                })
+                                .chain(iter::once({
+                                    let p = Proposition::PatternIsDigit { pattern, digit };
+                                    p.negation_to_index()
+                                })),
+                        ));
                     }
-                    // for digit in 0..10 {
-                    //     println!("[");
-                    //     // Iterate over all segments NOT IN this digit
-                    //     for segment in (match digit {
-                    //         0u8 => "d",
-                    //         1u8 => "abdeg",
-                    //         2u8 => "bf",
-                    //         3u8 => "be",
-                    //         4u8 => "aeg",
-                    //         5u8 => "ce",
-                    //         6u8 => "c",
-                    //         7u8 => "bdeg",
-                    //         8u8 => "",
-                    //         9u8 => "e",
-                    //         _ => panic!("Not a valid digit."),
-                    //     })
-                    //     .chars()
-                    //     {
-                    //         // pattern is digit => wire IS NOT segment
-                    //         let pattern_is_digit = Proposition::PatternIsDigit { pattern, digit };
-                    //         let wire_is_segment = Proposition::WireIsSegment { wire, segment };
-                    //         entry.clauses.push(vec![
-                    //             pattern_is_digit.to_index(),
-                    //             wire_is_segment.negation_to_index(),
-                    //         ]);
-                    //         println!("  YES {pattern_is_digit:?}");
-                    //         println!("  NO  {wire_is_segment:?}");
-                    //     }
-                    //     println!("]");
-                    //     break;
-                    // }
-                    break;
                 }
             }
             let soln = entry.solve();
@@ -289,47 +239,6 @@ fn main() {
 
             panic!("First iteration.");
         });
-    //.fold(0, |sum, line| {
-    //    println!("{}", line);
-
-    //    // For each pattern:
-    //    // 1. Each `pattern` has to be a `digit` 0-9
-    //    // 2. No `pattern` can be two `digit`s
-
-    //    // For each wire
-    //    // 1. Each wire has to be one segment
-    //    // 2. No wire can be two segments
-    //    // 3. If the `pattern` is `digit`, and the pattern contains `wire,`
-    //    //    then `wire` must be a segment in `digit`
-    //    //    aka pattern is digit => (for each wire in pattern)
-    //    //        (for all segments s1, s2, ... in digit) wire is s1 || wire is s2
-    //    //    aka for each wire in pattern
-    //    //           for all segments s NOT IN digit
-    //    //              pattern is digit => wire IS NOT segment
-    //    //    aka for each wire in pattern
-    //    //           for all segments s NOT IN digit
-    //    //              pattern IS NOT digit || wire IS NOT segment
-    //    //
-
-    //    // let count = output
-    //    //     .split_whitespace()
-    //    //     .filter(|&s| {
-    //    //         let x = s.len();
-    //    //         x == 2 || x == 3 || x == 4 || x == 7
-    //    //     })
-    //    //     .count();
-    //    // sum + count
-    //});
-
-    // println!("count: {count}");
-    // let digits_to_segments = get_digits_to_segemets();
-    // for digit in 0u8..=9u8 {
-    //     println!("{digit} -> {}", digits_to_segments[&digit].len());
-    // }
-
-    //let segements_to_digits: HashMap<&[char], u8> =
-    //    HashMap::from_iter(digits_to_segments.iter().map(|(&k, &v)| (v, k)));
-    //println!("segements_to_digits: {segements_to_digits:?}");
 }
 
 #[allow(dead_code)]
@@ -387,3 +296,110 @@ mod tests {
         }
     }
 }
+// DIGIT_SEGMENTS.iter().enumerate().map(|(digit, segments)| {
+// })
+// ));
+// #[allow(clippy::never_loop)]
+// for digit in 0..10 {
+// println!("[");
+// // Iterate over all segments NOT IN this digit
+// for segment in (match digit {
+//     0u8 => "d",
+//     1u8 => "abdeg",
+//     2u8 => "bf",
+//     3u8 => "be",
+//     4u8 => "aeg",
+//     5u8 => "ce",
+//     6u8 => "c",
+//     7u8 => "bdeg",
+//     8u8 => "",
+//     9u8 => "e",
+//     _ => panic!("Not a valid digit."),
+// })
+// .chars()
+// {
+//     // pattern is digit => wire IS NOT segment
+//     let pattern_is_digit = Proposition::PatternIsDigit { pattern, digit };
+//     let wire_is_segment = Proposition::WireIsSegment { wire, segment };
+//     entry.clauses.push(vec![
+//         pattern_is_digit.to_index(),
+//         wire_is_segment.negation_to_index(),
+//     ]);
+//     println!("  YES {pattern_is_digit:?}");
+//     println!("  NO  {wire_is_segment:?}");
+// }
+// println!("]");
+// break;
+// }
+// for digit in 0..10 {
+//     println!("[");
+//     // Iterate over all segments NOT IN this digit
+//     for segment in (match digit {
+//         0u8 => "d",
+//         1u8 => "abdeg",
+//         2u8 => "bf",
+//         3u8 => "be",
+//         4u8 => "aeg",
+//         5u8 => "ce",
+//         6u8 => "c",
+//         7u8 => "bdeg",
+//         8u8 => "",
+//         9u8 => "e",
+//         _ => panic!("Not a valid digit."),
+//     })
+//     .chars()
+//     {
+//         // pattern is digit => wire IS NOT segment
+//         let pattern_is_digit = Proposition::PatternIsDigit { pattern, digit };
+//         let wire_is_segment = Proposition::WireIsSegment { wire, segment };
+//         entry.clauses.push(vec![
+//             pattern_is_digit.to_index(),
+//             wire_is_segment.negation_to_index(),
+//         ]);
+//         println!("  YES {pattern_is_digit:?}");
+//         println!("  NO  {wire_is_segment:?}");
+//     }
+//     println!("]");
+//     break;
+// }
+//.fold(0, |sum, line| {
+//    println!("{}", line);
+
+//    // For each pattern:
+//    // 1. Each `pattern` has to be a `digit` 0-9
+//    // 2. No `pattern` can be two `digit`s
+
+//    // For each wire
+//    // 1. Each wire has to be one segment
+//    // 2. No wire can be two segments
+//    // 3. If the `pattern` is `digit`, and the pattern contains `wire,`
+//    //    then `wire` must be a segment in `digit`
+//    //    aka pattern is digit => (for each wire in pattern)
+//    //        (for all segments s1, s2, ... in digit) wire is s1 || wire is s2
+//    //    aka for each wire in pattern
+//    //           for all segments s NOT IN digit
+//    //              pattern is digit => wire IS NOT segment
+//    //    aka for each wire in pattern
+//    //           for all segments s NOT IN digit
+//    //              pattern IS NOT digit || wire IS NOT segment
+//    //
+
+//    // let count = output
+//    //     .split_whitespace()
+//    //     .filter(|&s| {
+//    //         let x = s.len();
+//    //         x == 2 || x == 3 || x == 4 || x == 7
+//    //     })
+//    //     .count();
+//    // sum + count
+//});
+
+// println!("count: {count}");
+// let digits_to_segments = get_digits_to_segemets();
+// for digit in 0u8..=9u8 {
+//     println!("{digit} -> {}", digits_to_segments[&digit].len());
+// }
+
+//let segements_to_digits: HashMap<&[char], u8> =
+//    HashMap::from_iter(digits_to_segments.iter().map(|(&k, &v)| (v, k)));
+//println!("segements_to_digits: {segements_to_digits:?}");
