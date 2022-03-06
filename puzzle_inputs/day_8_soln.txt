@@ -1,0 +1,853 @@
+0 patterns: badc bd dbeaf cfdbge dfb cfbdea efbag edcfgab dcafe degfca 
+0 output:  eacfd acdfbe cbdegf fcbaedg
+0 blah: ["eacfd", "acdfbe", "cbdegf", "fcbaedg"]
+0 -> badc
+1 -> bd
+2 -> dbeaf
+3 -> cfdbge
+4 -> dfb
+5 -> cfbdea
+6 -> efbag
+7 -> edcfgab
+8 -> dcafe
+9 -> degfca
+PatternIsDigit { pattern: 0, digit: 4 }
+PatternIsDigit { pattern: 1, digit: 1 }
+PatternIsDigit { pattern: 2, digit: 3 }
+PatternIsDigit { pattern: 3, digit: 0 }
+PatternIsDigit { pattern: 4, digit: 7 }
+PatternIsDigit { pattern: 5, digit: 9 }
+PatternIsDigit { pattern: 6, digit: 2 }
+PatternIsDigit { pattern: 7, digit: 8 }
+PatternIsDigit { pattern: 8, digit: 5 }
+PatternIsDigit { pattern: 9, digit: 6 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'c' }
+WireIsSegment { wire: 'c', segment: 'b' }
+WireIsSegment { wire: 'd', segment: 'f' }
+WireIsSegment { wire: 'e', segment: 'g' }
+WireIsSegment { wire: 'f', segment: 'a' }
+WireIsSegment { wire: 'g', segment: 'e' }
+1 patterns: cd fdbac egcfab gbadcfe cfgdeb cbadfe deca cdf dfabg abefc 
+1 output:  dcf cfbad gbafced fcd
+1 blah: ["dcf", "cfbad", "gbafced", "fcd"]
+0 -> cd
+1 -> fdbac
+2 -> egcfab
+3 -> gbadcfe
+4 -> cfgdeb
+5 -> cbadfe
+6 -> deca
+7 -> cdf
+8 -> dfabg
+9 -> abefc
+PatternIsDigit { pattern: 0, digit: 1 }
+PatternIsDigit { pattern: 1, digit: 3 }
+PatternIsDigit { pattern: 2, digit: 6 }
+PatternIsDigit { pattern: 3, digit: 8 }
+PatternIsDigit { pattern: 4, digit: 0 }
+PatternIsDigit { pattern: 5, digit: 9 }
+PatternIsDigit { pattern: 6, digit: 4 }
+PatternIsDigit { pattern: 7, digit: 7 }
+PatternIsDigit { pattern: 8, digit: 2 }
+PatternIsDigit { pattern: 9, digit: 5 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'c' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'a' }
+WireIsSegment { wire: 'g', segment: 'e' }
+2 patterns: cg agecfb cbg eabgfdc egdc fdgba bafecd cbdfe bfcdeg cfgdb 
+2 output:  efdcb adcfeb fbdcg gbc
+2 blah: ["efdcb", "adcfeb", "fbdcg", "gbc"]
+0 -> cg
+1 -> agecfb
+2 -> cbg
+3 -> eabgfdc
+4 -> egdc
+5 -> fdgba
+6 -> bafecd
+7 -> cbdfe
+8 -> bfcdeg
+9 -> cfgdb
+PatternIsDigit { pattern: 0, digit: 1 }
+PatternIsDigit { pattern: 1, digit: 0 }
+PatternIsDigit { pattern: 2, digit: 7 }
+PatternIsDigit { pattern: 3, digit: 8 }
+PatternIsDigit { pattern: 4, digit: 4 }
+PatternIsDigit { pattern: 5, digit: 2 }
+PatternIsDigit { pattern: 6, digit: 6 }
+PatternIsDigit { pattern: 7, digit: 5 }
+PatternIsDigit { pattern: 8, digit: 9 }
+PatternIsDigit { pattern: 9, digit: 3 }
+WireIsSegment { wire: 'a', segment: 'e' }
+WireIsSegment { wire: 'b', segment: 'a' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'g' }
+WireIsSegment { wire: 'g', segment: 'c' }
+3 patterns: bfceg gfadb dbcfgea bgaef efad abe bcdgfa ea fbdgea agecbd 
+3 output:  eadf ceadbg abfge fecdbga
+3 blah: ["eadf", "ceadbg", "abfge", "fecdbga"]
+0 -> bfceg
+1 -> gfadb
+2 -> dbcfgea
+3 -> bgaef
+4 -> efad
+5 -> abe
+6 -> bcdgfa
+7 -> ea
+8 -> fbdgea
+9 -> agecbd
+PatternIsDigit { pattern: 0, digit: 2 }
+PatternIsDigit { pattern: 1, digit: 5 }
+PatternIsDigit { pattern: 2, digit: 8 }
+PatternIsDigit { pattern: 3, digit: 3 }
+PatternIsDigit { pattern: 4, digit: 4 }
+PatternIsDigit { pattern: 5, digit: 7 }
+PatternIsDigit { pattern: 6, digit: 6 }
+PatternIsDigit { pattern: 7, digit: 1 }
+PatternIsDigit { pattern: 8, digit: 9 }
+PatternIsDigit { pattern: 9, digit: 0 }
+WireIsSegment { wire: 'a', segment: 'f' }
+WireIsSegment { wire: 'b', segment: 'a' }
+WireIsSegment { wire: 'c', segment: 'e' }
+WireIsSegment { wire: 'd', segment: 'b' }
+WireIsSegment { wire: 'e', segment: 'c' }
+WireIsSegment { wire: 'f', segment: 'd' }
+WireIsSegment { wire: 'g', segment: 'g' }
+4 patterns: gdcafe eacb adc gbfda afdceb edgbcf badfc ecgbafd ac fdbce 
+4 output:  ebfcd cefdab bdfgeca egbdacf
+4 blah: ["ebfcd", "cefdab", "bdfgeca", "egbdacf"]
+0 -> gdcafe
+1 -> eacb
+2 -> adc
+3 -> gbfda
+4 -> afdceb
+5 -> edgbcf
+6 -> badfc
+7 -> ecgbafd
+8 -> ac
+9 -> fdbce
+PatternIsDigit { pattern: 0, digit: 0 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 7 }
+PatternIsDigit { pattern: 3, digit: 2 }
+PatternIsDigit { pattern: 4, digit: 9 }
+PatternIsDigit { pattern: 5, digit: 6 }
+PatternIsDigit { pattern: 6, digit: 3 }
+PatternIsDigit { pattern: 7, digit: 8 }
+PatternIsDigit { pattern: 8, digit: 1 }
+PatternIsDigit { pattern: 9, digit: 5 }
+WireIsSegment { wire: 'a', segment: 'c' }
+WireIsSegment { wire: 'b', segment: 'd' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'a' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'g' }
+WireIsSegment { wire: 'g', segment: 'e' }
+5 patterns: aefbgd fbdc fbecg egdcb edcbag bf gcefa fbedcg bagfced fbg 
+5 output:  afgce cfbd bdcf geafdbc
+5 blah: ["afgce", "cfbd", "bdcf", "geafdbc"]
+0 -> aefbgd
+1 -> fbdc
+2 -> fbecg
+3 -> egdcb
+4 -> edcbag
+5 -> bf
+6 -> gcefa
+7 -> fbedcg
+8 -> bagfced
+9 -> fbg
+PatternIsDigit { pattern: 0, digit: 0 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 3 }
+PatternIsDigit { pattern: 3, digit: 5 }
+PatternIsDigit { pattern: 4, digit: 6 }
+PatternIsDigit { pattern: 5, digit: 1 }
+PatternIsDigit { pattern: 6, digit: 2 }
+PatternIsDigit { pattern: 7, digit: 9 }
+PatternIsDigit { pattern: 8, digit: 8 }
+PatternIsDigit { pattern: 9, digit: 7 }
+WireIsSegment { wire: 'a', segment: 'e' }
+WireIsSegment { wire: 'b', segment: 'f' }
+WireIsSegment { wire: 'c', segment: 'd' }
+WireIsSegment { wire: 'd', segment: 'b' }
+WireIsSegment { wire: 'e', segment: 'g' }
+WireIsSegment { wire: 'f', segment: 'c' }
+WireIsSegment { wire: 'g', segment: 'a' }
+6 patterns: ebgacd edacg gcdeaf cabfg dbc bd cdbgaef ebad fecgbd acbgd 
+6 output:  dgbac db caegbdf gcbfa
+6 blah: ["dgbac", "db", "caegbdf", "gcbfa"]
+0 -> ebgacd
+1 -> edacg
+2 -> gcdeaf
+3 -> cabfg
+4 -> dbc
+5 -> bd
+6 -> cdbgaef
+7 -> ebad
+8 -> fecgbd
+9 -> acbgd
+PatternIsDigit { pattern: 0, digit: 9 }
+PatternIsDigit { pattern: 1, digit: 5 }
+PatternIsDigit { pattern: 2, digit: 6 }
+PatternIsDigit { pattern: 3, digit: 2 }
+PatternIsDigit { pattern: 4, digit: 7 }
+PatternIsDigit { pattern: 5, digit: 1 }
+PatternIsDigit { pattern: 6, digit: 8 }
+PatternIsDigit { pattern: 7, digit: 4 }
+PatternIsDigit { pattern: 8, digit: 0 }
+PatternIsDigit { pattern: 9, digit: 3 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'c' }
+WireIsSegment { wire: 'c', segment: 'a' }
+WireIsSegment { wire: 'd', segment: 'f' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'e' }
+WireIsSegment { wire: 'g', segment: 'g' }
+7 patterns: defbga gead ge efagcb gdafbc cegbdfa egf bfdce bgdef dgabf 
+7 output:  gef eg bfcdag ge
+7 blah: ["gef", "eg", "bfcdag", "ge"]
+0 -> defbga
+1 -> gead
+2 -> ge
+3 -> efagcb
+4 -> gdafbc
+5 -> cegbdfa
+6 -> egf
+7 -> bfdce
+8 -> bgdef
+9 -> dgabf
+PatternIsDigit { pattern: 0, digit: 9 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 1 }
+PatternIsDigit { pattern: 3, digit: 0 }
+PatternIsDigit { pattern: 4, digit: 6 }
+PatternIsDigit { pattern: 5, digit: 8 }
+PatternIsDigit { pattern: 6, digit: 7 }
+PatternIsDigit { pattern: 7, digit: 2 }
+PatternIsDigit { pattern: 8, digit: 3 }
+PatternIsDigit { pattern: 9, digit: 5 }
+WireIsSegment { wire: 'a', segment: 'b' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'e' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'c' }
+WireIsSegment { wire: 'f', segment: 'a' }
+WireIsSegment { wire: 'g', segment: 'f' }
+8 patterns: bae adcgfbe cdfeag ab dcgeb bfdage agecb cagfe abcf bfcaeg 
+8 output:  bae aeb agfceb afceg
+8 blah: ["bae", "aeb", "agfceb", "afceg"]
+0 -> bae
+1 -> adcgfbe
+2 -> cdfeag
+3 -> ab
+4 -> dcgeb
+5 -> bfdage
+6 -> agecb
+7 -> cagfe
+8 -> abcf
+9 -> bfcaeg
+PatternIsDigit { pattern: 0, digit: 7 }
+PatternIsDigit { pattern: 1, digit: 8 }
+PatternIsDigit { pattern: 2, digit: 6 }
+PatternIsDigit { pattern: 3, digit: 1 }
+PatternIsDigit { pattern: 4, digit: 2 }
+PatternIsDigit { pattern: 5, digit: 0 }
+PatternIsDigit { pattern: 6, digit: 3 }
+PatternIsDigit { pattern: 7, digit: 5 }
+PatternIsDigit { pattern: 8, digit: 4 }
+PatternIsDigit { pattern: 9, digit: 9 }
+WireIsSegment { wire: 'a', segment: 'f' }
+WireIsSegment { wire: 'b', segment: 'c' }
+WireIsSegment { wire: 'c', segment: 'd' }
+WireIsSegment { wire: 'd', segment: 'e' }
+WireIsSegment { wire: 'e', segment: 'a' }
+WireIsSegment { wire: 'f', segment: 'b' }
+WireIsSegment { wire: 'g', segment: 'g' }
+9 patterns: ae adefcb gaceb gadceb edag efadcgb badgc cfgbe cadbfg cea 
+9 output:  ceabgd fbeacdg aged aged
+9 blah: ["ceabgd", "fbeacdg", "aged", "aged"]
+0 -> ae
+1 -> adefcb
+2 -> gaceb
+3 -> gadceb
+4 -> edag
+5 -> efadcgb
+6 -> badgc
+7 -> cfgbe
+8 -> cadbfg
+9 -> cea
+PatternIsDigit { pattern: 0, digit: 1 }
+PatternIsDigit { pattern: 1, digit: 0 }
+PatternIsDigit { pattern: 2, digit: 3 }
+PatternIsDigit { pattern: 3, digit: 9 }
+PatternIsDigit { pattern: 4, digit: 4 }
+PatternIsDigit { pattern: 5, digit: 8 }
+PatternIsDigit { pattern: 6, digit: 5 }
+PatternIsDigit { pattern: 7, digit: 2 }
+PatternIsDigit { pattern: 8, digit: 6 }
+PatternIsDigit { pattern: 9, digit: 7 }
+WireIsSegment { wire: 'a', segment: 'f' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'a' }
+WireIsSegment { wire: 'd', segment: 'b' }
+WireIsSegment { wire: 'e', segment: 'c' }
+WireIsSegment { wire: 'f', segment: 'e' }
+WireIsSegment { wire: 'g', segment: 'd' }
+10 patterns: aegbdc dbegfac gcbaf df febd egdafc deabg gdf gdfeab adfbg 
+10 output:  bcdegaf dfeb bcegad df
+10 blah: ["bcdegaf", "dfeb", "bcegad", "df"]
+0 -> aegbdc
+1 -> dbegfac
+2 -> gcbaf
+3 -> df
+4 -> febd
+5 -> egdafc
+6 -> deabg
+7 -> gdf
+8 -> gdfeab
+9 -> adfbg
+PatternIsDigit { pattern: 0, digit: 6 }
+PatternIsDigit { pattern: 1, digit: 8 }
+PatternIsDigit { pattern: 2, digit: 2 }
+PatternIsDigit { pattern: 3, digit: 1 }
+PatternIsDigit { pattern: 4, digit: 4 }
+PatternIsDigit { pattern: 5, digit: 0 }
+PatternIsDigit { pattern: 6, digit: 5 }
+PatternIsDigit { pattern: 7, digit: 7 }
+PatternIsDigit { pattern: 8, digit: 9 }
+PatternIsDigit { pattern: 9, digit: 3 }
+WireIsSegment { wire: 'a', segment: 'g' }
+WireIsSegment { wire: 'b', segment: 'd' }
+WireIsSegment { wire: 'c', segment: 'e' }
+WireIsSegment { wire: 'd', segment: 'f' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'c' }
+WireIsSegment { wire: 'g', segment: 'a' }
+11 patterns: aegcdfb becdaf gdecf ag fag dcfgba badg fcbad cdgaf acefgb 
+11 output:  abcdf cefdab ga ga
+11 blah: ["abcdf", "cefdab", "ga", "ga"]
+0 -> aegcdfb
+1 -> becdaf
+2 -> gdecf
+3 -> ag
+4 -> fag
+5 -> dcfgba
+6 -> badg
+7 -> fcbad
+8 -> cdgaf
+9 -> acefgb
+PatternIsDigit { pattern: 0, digit: 8 }
+PatternIsDigit { pattern: 1, digit: 6 }
+PatternIsDigit { pattern: 2, digit: 2 }
+PatternIsDigit { pattern: 3, digit: 1 }
+PatternIsDigit { pattern: 4, digit: 7 }
+PatternIsDigit { pattern: 5, digit: 9 }
+PatternIsDigit { pattern: 6, digit: 4 }
+PatternIsDigit { pattern: 7, digit: 5 }
+PatternIsDigit { pattern: 8, digit: 3 }
+PatternIsDigit { pattern: 9, digit: 0 }
+WireIsSegment { wire: 'a', segment: 'f' }
+WireIsSegment { wire: 'b', segment: 'b' }
+WireIsSegment { wire: 'c', segment: 'g' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'e' }
+WireIsSegment { wire: 'f', segment: 'a' }
+WireIsSegment { wire: 'g', segment: 'c' }
+12 patterns: gbcfad cefadg cegad aefdb gedacb gcfe fc cfbgead cfade caf 
+12 output:  degac egcf geacfbd afc
+12 blah: ["degac", "egcf", "geacfbd", "afc"]
+0 -> gbcfad
+1 -> cefadg
+2 -> cegad
+3 -> aefdb
+4 -> gedacb
+5 -> gcfe
+6 -> fc
+7 -> cfbgead
+8 -> cfade
+9 -> caf
+PatternIsDigit { pattern: 0, digit: 0 }
+PatternIsDigit { pattern: 1, digit: 9 }
+PatternIsDigit { pattern: 2, digit: 5 }
+PatternIsDigit { pattern: 3, digit: 2 }
+PatternIsDigit { pattern: 4, digit: 6 }
+PatternIsDigit { pattern: 5, digit: 4 }
+PatternIsDigit { pattern: 6, digit: 1 }
+PatternIsDigit { pattern: 7, digit: 8 }
+PatternIsDigit { pattern: 8, digit: 3 }
+PatternIsDigit { pattern: 9, digit: 7 }
+WireIsSegment { wire: 'a', segment: 'a' }
+WireIsSegment { wire: 'b', segment: 'e' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'g' }
+WireIsSegment { wire: 'e', segment: 'd' }
+WireIsSegment { wire: 'f', segment: 'c' }
+WireIsSegment { wire: 'g', segment: 'b' }
+13 patterns: bcfad afcdbe fd ecfba cfd afde cfeabg gcbfed dacbg fdgabec 
+13 output:  cafbged edfa fcd dabgc
+13 blah: ["cafbged", "edfa", "fcd", "dabgc"]
+0 -> bcfad
+1 -> afcdbe
+2 -> fd
+3 -> ecfba
+4 -> cfd
+5 -> afde
+6 -> cfeabg
+7 -> gcbfed
+8 -> dacbg
+9 -> fdgabec
+PatternIsDigit { pattern: 0, digit: 3 }
+PatternIsDigit { pattern: 1, digit: 9 }
+PatternIsDigit { pattern: 2, digit: 1 }
+PatternIsDigit { pattern: 3, digit: 5 }
+PatternIsDigit { pattern: 4, digit: 7 }
+PatternIsDigit { pattern: 5, digit: 4 }
+PatternIsDigit { pattern: 6, digit: 6 }
+PatternIsDigit { pattern: 7, digit: 0 }
+PatternIsDigit { pattern: 8, digit: 2 }
+PatternIsDigit { pattern: 9, digit: 8 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'a' }
+WireIsSegment { wire: 'd', segment: 'c' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'f' }
+WireIsSegment { wire: 'g', segment: 'e' }
+14 patterns: afdc adbfe bgecfad ecagdb dbcafe dfe fd agbfe bdace gdbfec 
+14 output:  fadbe efbdgc fadbe edcba
+14 blah: ["fadbe", "efbdgc", "fadbe", "edcba"]
+0 -> afdc
+1 -> adbfe
+2 -> bgecfad
+3 -> ecagdb
+4 -> dbcafe
+5 -> dfe
+6 -> fd
+7 -> agbfe
+8 -> bdace
+9 -> gdbfec
+PatternIsDigit { pattern: 0, digit: 4 }
+PatternIsDigit { pattern: 1, digit: 3 }
+PatternIsDigit { pattern: 2, digit: 8 }
+PatternIsDigit { pattern: 3, digit: 6 }
+PatternIsDigit { pattern: 4, digit: 9 }
+PatternIsDigit { pattern: 5, digit: 7 }
+PatternIsDigit { pattern: 6, digit: 1 }
+PatternIsDigit { pattern: 7, digit: 2 }
+PatternIsDigit { pattern: 8, digit: 5 }
+PatternIsDigit { pattern: 9, digit: 0 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'b' }
+WireIsSegment { wire: 'd', segment: 'f' }
+WireIsSegment { wire: 'e', segment: 'a' }
+WireIsSegment { wire: 'f', segment: 'c' }
+WireIsSegment { wire: 'g', segment: 'e' }
+15 patterns: bdface geba ecbdag acegd afcdg ge eadbc bfecgda edg fgbdce 
+15 output:  eg abge fadgceb abge
+15 blah: ["eg", "abge", "fadgceb", "abge"]
+0 -> bdface
+1 -> geba
+2 -> ecbdag
+3 -> acegd
+4 -> afcdg
+5 -> ge
+6 -> eadbc
+7 -> bfecgda
+8 -> edg
+9 -> fgbdce
+PatternIsDigit { pattern: 0, digit: 6 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 9 }
+PatternIsDigit { pattern: 3, digit: 3 }
+PatternIsDigit { pattern: 4, digit: 2 }
+PatternIsDigit { pattern: 5, digit: 1 }
+PatternIsDigit { pattern: 6, digit: 5 }
+PatternIsDigit { pattern: 7, digit: 8 }
+PatternIsDigit { pattern: 8, digit: 7 }
+PatternIsDigit { pattern: 9, digit: 0 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'b' }
+WireIsSegment { wire: 'c', segment: 'g' }
+WireIsSegment { wire: 'd', segment: 'a' }
+WireIsSegment { wire: 'e', segment: 'f' }
+WireIsSegment { wire: 'f', segment: 'e' }
+WireIsSegment { wire: 'g', segment: 'c' }
+16 patterns: fagbde fcegbd gec efcdg fdgbe ebfcag gc adcfe cgdb cagbdfe 
+16 output:  defcg cbgdfea gcbd ecfgd
+16 blah: ["defcg", "cbgdfea", "gcbd", "ecfgd"]
+0 -> fagbde
+1 -> fcegbd
+2 -> gec
+3 -> efcdg
+4 -> fdgbe
+5 -> ebfcag
+6 -> gc
+7 -> adcfe
+8 -> cgdb
+9 -> cagbdfe
+PatternIsDigit { pattern: 0, digit: 6 }
+PatternIsDigit { pattern: 1, digit: 9 }
+PatternIsDigit { pattern: 2, digit: 7 }
+PatternIsDigit { pattern: 3, digit: 3 }
+PatternIsDigit { pattern: 4, digit: 5 }
+PatternIsDigit { pattern: 5, digit: 0 }
+PatternIsDigit { pattern: 6, digit: 1 }
+PatternIsDigit { pattern: 7, digit: 2 }
+PatternIsDigit { pattern: 8, digit: 4 }
+PatternIsDigit { pattern: 9, digit: 8 }
+WireIsSegment { wire: 'a', segment: 'e' }
+WireIsSegment { wire: 'b', segment: 'b' }
+WireIsSegment { wire: 'c', segment: 'c' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'a' }
+WireIsSegment { wire: 'f', segment: 'g' }
+WireIsSegment { wire: 'g', segment: 'f' }
+17 patterns: acfbg debgf gfcdba edcbfa fbdag fgbeca cfbagde gadc da bda 
+17 output:  dacg acbgf cedfgab caefdgb
+17 blah: ["dacg", "acbgf", "cedfgab", "caefdgb"]
+0 -> acfbg
+1 -> debgf
+2 -> gfcdba
+3 -> edcbfa
+4 -> fbdag
+5 -> fgbeca
+6 -> cfbagde
+7 -> gadc
+8 -> da
+9 -> bda
+PatternIsDigit { pattern: 0, digit: 5 }
+PatternIsDigit { pattern: 1, digit: 2 }
+PatternIsDigit { pattern: 2, digit: 9 }
+PatternIsDigit { pattern: 3, digit: 0 }
+PatternIsDigit { pattern: 4, digit: 3 }
+PatternIsDigit { pattern: 5, digit: 6 }
+PatternIsDigit { pattern: 6, digit: 8 }
+PatternIsDigit { pattern: 7, digit: 4 }
+PatternIsDigit { pattern: 8, digit: 1 }
+PatternIsDigit { pattern: 9, digit: 7 }
+WireIsSegment { wire: 'a', segment: 'f' }
+WireIsSegment { wire: 'b', segment: 'a' }
+WireIsSegment { wire: 'c', segment: 'b' }
+WireIsSegment { wire: 'd', segment: 'c' }
+WireIsSegment { wire: 'e', segment: 'e' }
+WireIsSegment { wire: 'f', segment: 'g' }
+WireIsSegment { wire: 'g', segment: 'd' }
+18 patterns: ca dfegca edcbgf gfcde aedbg gfdeacb dcbfea facg dgcea ace 
+18 output:  fedcg fdagec cea ac
+18 blah: ["fedcg", "fdagec", "cea", "ac"]
+0 -> ca
+1 -> dfegca
+2 -> edcbgf
+3 -> gfcde
+4 -> aedbg
+5 -> gfdeacb
+6 -> dcbfea
+7 -> facg
+8 -> dgcea
+9 -> ace
+PatternIsDigit { pattern: 0, digit: 1 }
+PatternIsDigit { pattern: 1, digit: 9 }
+PatternIsDigit { pattern: 2, digit: 6 }
+PatternIsDigit { pattern: 3, digit: 5 }
+PatternIsDigit { pattern: 4, digit: 2 }
+PatternIsDigit { pattern: 5, digit: 8 }
+PatternIsDigit { pattern: 6, digit: 0 }
+PatternIsDigit { pattern: 7, digit: 4 }
+PatternIsDigit { pattern: 8, digit: 3 }
+PatternIsDigit { pattern: 9, digit: 7 }
+WireIsSegment { wire: 'a', segment: 'c' }
+WireIsSegment { wire: 'b', segment: 'e' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'g' }
+WireIsSegment { wire: 'e', segment: 'a' }
+WireIsSegment { wire: 'f', segment: 'b' }
+WireIsSegment { wire: 'g', segment: 'd' }
+19 patterns: acdf gcfde debcga ecbgaf cf ebgdf bagfdce cedag cef gedafc 
+19 output:  dgcbea fc dcgeaf cdaeg
+19 blah: ["dgcbea", "fc", "dcgeaf", "cdaeg"]
+0 -> acdf
+1 -> gcfde
+2 -> debcga
+3 -> ecbgaf
+4 -> cf
+5 -> ebgdf
+6 -> bagfdce
+7 -> cedag
+8 -> cef
+9 -> gedafc
+PatternIsDigit { pattern: 0, digit: 4 }
+PatternIsDigit { pattern: 1, digit: 3 }
+PatternIsDigit { pattern: 2, digit: 6 }
+PatternIsDigit { pattern: 3, digit: 0 }
+PatternIsDigit { pattern: 4, digit: 1 }
+PatternIsDigit { pattern: 5, digit: 2 }
+PatternIsDigit { pattern: 6, digit: 8 }
+PatternIsDigit { pattern: 7, digit: 5 }
+PatternIsDigit { pattern: 8, digit: 7 }
+PatternIsDigit { pattern: 9, digit: 9 }
+WireIsSegment { wire: 'a', segment: 'b' }
+WireIsSegment { wire: 'b', segment: 'e' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'a' }
+WireIsSegment { wire: 'f', segment: 'c' }
+WireIsSegment { wire: 'g', segment: 'g' }
+20 patterns: ebagf cabgfed ed cbgad afcbge afdbge edg eagbd cedgfb aefd 
+20 output:  fcgdbe de cgbeaf ed
+20 blah: ["fcgdbe", "de", "cgbeaf", "ed"]
+0 -> ebagf
+1 -> cabgfed
+2 -> ed
+3 -> cbgad
+4 -> afcbge
+5 -> afdbge
+6 -> edg
+7 -> eagbd
+8 -> cedgfb
+9 -> aefd
+PatternIsDigit { pattern: 0, digit: 5 }
+PatternIsDigit { pattern: 1, digit: 8 }
+PatternIsDigit { pattern: 2, digit: 1 }
+PatternIsDigit { pattern: 3, digit: 2 }
+PatternIsDigit { pattern: 4, digit: 6 }
+PatternIsDigit { pattern: 5, digit: 9 }
+PatternIsDigit { pattern: 6, digit: 7 }
+PatternIsDigit { pattern: 7, digit: 3 }
+PatternIsDigit { pattern: 8, digit: 0 }
+PatternIsDigit { pattern: 9, digit: 4 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'e' }
+WireIsSegment { wire: 'd', segment: 'c' }
+WireIsSegment { wire: 'e', segment: 'f' }
+WireIsSegment { wire: 'f', segment: 'b' }
+WireIsSegment { wire: 'g', segment: 'a' }
+21 patterns: fbcdeag cafbd fgcbea fdgacb daecfb cg gca defga gbdc fdcga 
+21 output:  abfcged agc acfgd cbfaeg
+21 blah: ["abfcged", "agc", "acfgd", "cbfaeg"]
+0 -> fbcdeag
+1 -> cafbd
+2 -> fgcbea
+3 -> fdgacb
+4 -> daecfb
+5 -> cg
+6 -> gca
+7 -> defga
+8 -> gbdc
+9 -> fdcga
+PatternIsDigit { pattern: 0, digit: 8 }
+PatternIsDigit { pattern: 1, digit: 5 }
+PatternIsDigit { pattern: 2, digit: 0 }
+PatternIsDigit { pattern: 3, digit: 9 }
+PatternIsDigit { pattern: 4, digit: 6 }
+PatternIsDigit { pattern: 5, digit: 1 }
+PatternIsDigit { pattern: 6, digit: 7 }
+PatternIsDigit { pattern: 7, digit: 2 }
+PatternIsDigit { pattern: 8, digit: 4 }
+PatternIsDigit { pattern: 9, digit: 3 }
+WireIsSegment { wire: 'a', segment: 'a' }
+WireIsSegment { wire: 'b', segment: 'b' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'e' }
+WireIsSegment { wire: 'f', segment: 'g' }
+WireIsSegment { wire: 'g', segment: 'c' }
+22 patterns: dacfe ed ebdcag gcadfe dfbcaeg dce dfeg fbcadg bfeca acdfg 
+22 output:  fcbdga gcbade aegdcf fbcgda
+22 blah: ["fcbdga", "gcbade", "aegdcf", "fbcgda"]
+0 -> dacfe
+1 -> ed
+2 -> ebdcag
+3 -> gcadfe
+4 -> dfbcaeg
+5 -> dce
+6 -> dfeg
+7 -> fbcadg
+8 -> bfeca
+9 -> acdfg
+PatternIsDigit { pattern: 0, digit: 3 }
+PatternIsDigit { pattern: 1, digit: 1 }
+PatternIsDigit { pattern: 2, digit: 0 }
+PatternIsDigit { pattern: 3, digit: 9 }
+PatternIsDigit { pattern: 4, digit: 8 }
+PatternIsDigit { pattern: 5, digit: 7 }
+PatternIsDigit { pattern: 6, digit: 4 }
+PatternIsDigit { pattern: 7, digit: 6 }
+PatternIsDigit { pattern: 8, digit: 2 }
+PatternIsDigit { pattern: 9, digit: 5 }
+WireIsSegment { wire: 'a', segment: 'g' }
+WireIsSegment { wire: 'b', segment: 'e' }
+WireIsSegment { wire: 'c', segment: 'a' }
+WireIsSegment { wire: 'd', segment: 'f' }
+WireIsSegment { wire: 'e', segment: 'c' }
+WireIsSegment { wire: 'f', segment: 'd' }
+WireIsSegment { wire: 'g', segment: 'b' }
+23 patterns: cfdegb cbef fgdec gdfbca gdecbfa egfdca bc gbc cbegd aedgb 
+23 output:  befc bc abegd ebcdfga
+23 blah: ["befc", "bc", "abegd", "ebcdfga"]
+0 -> cfdegb
+1 -> cbef
+2 -> fgdec
+3 -> gdfbca
+4 -> gdecbfa
+5 -> egfdca
+6 -> bc
+7 -> gbc
+8 -> cbegd
+9 -> aedgb
+PatternIsDigit { pattern: 0, digit: 9 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 5 }
+PatternIsDigit { pattern: 3, digit: 0 }
+PatternIsDigit { pattern: 4, digit: 8 }
+PatternIsDigit { pattern: 5, digit: 6 }
+PatternIsDigit { pattern: 6, digit: 1 }
+PatternIsDigit { pattern: 7, digit: 7 }
+PatternIsDigit { pattern: 8, digit: 3 }
+PatternIsDigit { pattern: 9, digit: 2 }
+WireIsSegment { wire: 'a', segment: 'e' }
+WireIsSegment { wire: 'b', segment: 'c' }
+WireIsSegment { wire: 'c', segment: 'f' }
+WireIsSegment { wire: 'd', segment: 'g' }
+WireIsSegment { wire: 'e', segment: 'd' }
+WireIsSegment { wire: 'f', segment: 'b' }
+WireIsSegment { wire: 'g', segment: 'a' }
+24 patterns: agcefdb fdbg bf bdafe gdebaf eafdg acdbe gcebaf bef edcfga 
+24 output:  bf fdbg efdab gefda
+24 blah: ["bf", "fdbg", "efdab", "gefda"]
+0 -> agcefdb
+1 -> fdbg
+2 -> bf
+3 -> bdafe
+4 -> gdebaf
+5 -> eafdg
+6 -> acdbe
+7 -> gcebaf
+8 -> bef
+9 -> edcfga
+PatternIsDigit { pattern: 0, digit: 8 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 1 }
+PatternIsDigit { pattern: 3, digit: 3 }
+PatternIsDigit { pattern: 4, digit: 9 }
+PatternIsDigit { pattern: 5, digit: 5 }
+PatternIsDigit { pattern: 6, digit: 2 }
+PatternIsDigit { pattern: 7, digit: 0 }
+PatternIsDigit { pattern: 8, digit: 7 }
+PatternIsDigit { pattern: 9, digit: 6 }
+WireIsSegment { wire: 'a', segment: 'g' }
+WireIsSegment { wire: 'b', segment: 'c' }
+WireIsSegment { wire: 'c', segment: 'e' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'a' }
+WireIsSegment { wire: 'f', segment: 'f' }
+WireIsSegment { wire: 'g', segment: 'b' }
+25 patterns: gcb bdcgef dcbfg bg edbg facegb cbedf edgafbc dfgca edacbf 
+25 output:  gb cdebfa deagfcb bg
+25 blah: ["gb", "cdebfa", "deagfcb", "bg"]
+0 -> gcb
+1 -> bdcgef
+2 -> dcbfg
+3 -> bg
+4 -> edbg
+5 -> facegb
+6 -> cbedf
+7 -> edgafbc
+8 -> dfgca
+9 -> edacbf
+PatternIsDigit { pattern: 0, digit: 7 }
+PatternIsDigit { pattern: 1, digit: 9 }
+PatternIsDigit { pattern: 2, digit: 3 }
+PatternIsDigit { pattern: 3, digit: 1 }
+PatternIsDigit { pattern: 4, digit: 4 }
+PatternIsDigit { pattern: 5, digit: 0 }
+PatternIsDigit { pattern: 6, digit: 5 }
+PatternIsDigit { pattern: 7, digit: 8 }
+PatternIsDigit { pattern: 8, digit: 2 }
+PatternIsDigit { pattern: 9, digit: 6 }
+WireIsSegment { wire: 'a', segment: 'e' }
+WireIsSegment { wire: 'b', segment: 'f' }
+WireIsSegment { wire: 'c', segment: 'a' }
+WireIsSegment { wire: 'd', segment: 'd' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'g' }
+WireIsSegment { wire: 'g', segment: 'c' }
+26 patterns: eafbg gfad afegbd caefbg befdgc ebagd gd bdg cfbdage acdeb 
+26 output:  gd geafb cabed dbg
+26 blah: ["gd", "geafb", "cabed", "dbg"]
+0 -> eafbg
+1 -> gfad
+2 -> afegbd
+3 -> caefbg
+4 -> befdgc
+5 -> ebagd
+6 -> gd
+7 -> bdg
+8 -> cfbdage
+9 -> acdeb
+PatternIsDigit { pattern: 0, digit: 5 }
+PatternIsDigit { pattern: 1, digit: 4 }
+PatternIsDigit { pattern: 2, digit: 9 }
+PatternIsDigit { pattern: 3, digit: 6 }
+PatternIsDigit { pattern: 4, digit: 0 }
+PatternIsDigit { pattern: 5, digit: 3 }
+PatternIsDigit { pattern: 6, digit: 1 }
+PatternIsDigit { pattern: 7, digit: 7 }
+PatternIsDigit { pattern: 8, digit: 8 }
+PatternIsDigit { pattern: 9, digit: 2 }
+WireIsSegment { wire: 'a', segment: 'd' }
+WireIsSegment { wire: 'b', segment: 'a' }
+WireIsSegment { wire: 'c', segment: 'e' }
+WireIsSegment { wire: 'd', segment: 'c' }
+WireIsSegment { wire: 'e', segment: 'g' }
+WireIsSegment { wire: 'f', segment: 'b' }
+WireIsSegment { wire: 'g', segment: 'f' }
+27 patterns: bcedfg dc dgc aedfbcg acgbed bgfead gedbf bfdcg cedf facbg 
+27 output:  gabfed cdebag dafegb cd
+27 blah: ["gabfed", "cdebag", "dafegb", "cd"]
+0 -> bcedfg
+1 -> dc
+2 -> dgc
+3 -> aedfbcg
+4 -> acgbed
+5 -> bgfead
+6 -> gedbf
+7 -> bfdcg
+8 -> cedf
+9 -> facbg
+PatternIsDigit { pattern: 0, digit: 9 }
+PatternIsDigit { pattern: 1, digit: 1 }
+PatternIsDigit { pattern: 2, digit: 7 }
+PatternIsDigit { pattern: 3, digit: 8 }
+PatternIsDigit { pattern: 4, digit: 0 }
+PatternIsDigit { pattern: 5, digit: 6 }
+PatternIsDigit { pattern: 6, digit: 5 }
+PatternIsDigit { pattern: 7, digit: 3 }
+PatternIsDigit { pattern: 8, digit: 4 }
+PatternIsDigit { pattern: 9, digit: 2 }
+WireIsSegment { wire: 'a', segment: 'e' }
+WireIsSegment { wire: 'b', segment: 'g' }
+WireIsSegment { wire: 'c', segment: 'c' }
+WireIsSegment { wire: 'd', segment: 'f' }
+WireIsSegment { wire: 'e', segment: 'b' }
+WireIsSegment { wire: 'f', segment: 'd' }
+WireIsSegment { wire: 'g', segment: 'a' }
+28 patterns: fa adbceg afecd cafdbge eacgfb daegcf aef bcdfe fdga daceg 
+28 output:  acedf afe fae afdg
+28 blah: ["acedf", "afe", "fae", "afdg"]
+0 -> fa
+1 -> adbceg
+2 -> afecd
+3 -> cafdbge
+4 -> eacgfb
+5 -> daegcf
+6 -> aef
+7 -> bcdfe
+8 -> fdga
+9 -> daceg
