@@ -163,38 +163,6 @@ impl Entry {
     }
 }
 
-// /// Gets a mapping from digits to which segements the encompass.
-// fn get_digits_to_segemets() -> HashMap<u8, HashSet<char>> {
-//     HashMap::from([
-//         (0u8, HashSet::from(['a', 'b', 'c', 'e', 'f', 'g']),
-//         (1u8, HashSet::from(['c', 'f']),
-//         (2u8, HashSet::from(['a', 'c', 'd', 'e', 'g']),
-//         (3u8, HashSet::from(['a', 'c', 'd', 'f', 'g']),
-//         (4u8, HashSet::from(['b', 'c', 'd', 'f']),
-//         (5u8, HashSet::from(['a', 'b', 'd', 'f', 'g']),
-//         (6u8, HashSet::from(['a', 'b', 'd', 'e', 'f', 'g']),
-//         (7u8, HashSet::from(['a', 'c', 'f']),
-//         (8u8, HashSet::from(['a', 'b', 'c', 'd', 'e', 'f', 'g']),
-//         (9u8, HashSet::from(['a', 'b', 'c', 'd', 'f', 'g'])),
-//     ])
-// }
-
-// /// Gets a mapping from digits to which segements the encompass.
-// fn get_digits_to_segemets() -> HashMap<u8, &'static [char]> {
-//     HashMap::from([
-//         (0u8, &['a', 'b', 'c', 'e', 'f', 'g'][..]),
-//         (1u8, &['c', 'f'][..]),
-//         (2u8, &['a', 'c', 'd', 'e', 'g'][..]),
-//         (3u8, &['a', 'c', 'd', 'f', 'g'][..]),
-//         (4u8, &['b', 'c', 'd', 'f'][..]),
-//         (5u8, &['a', 'b', 'd', 'f', 'g'][..]),
-//         (6u8, &['a', 'b', 'd', 'e', 'f', 'g'][..]),
-//         (7u8, &['a', 'c', 'f'][..]),
-//         (8u8, &['a', 'b', 'c', 'd', 'e', 'f', 'g'][..]),
-//         (9u8, &['a', 'b', 'c', 'd', 'f', 'g'][..]),
-//     ])
-// }
-
 const DIGIT_SEGMENTS: [&str; 10] = [
     "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
 ];
@@ -202,12 +170,13 @@ const DIGIT_SEGMENTS: [&str; 10] = [
 fn main() {
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
-        .for_each(|line| {
+        .enumerate()
+        .for_each(|(line_no, line)| {
             let (patterns, output) = line.split_once("|").unwrap();
-            println!("patterns: {patterns}");
-            println!("output: {output}");
+            println!("{line_no} patterns: {patterns}");
+            println!("{line_no} output: {output}");
             let blah: Vec<_> = output.split_whitespace().collect();
-            println!("blah: {blah:?}");
+            println!("{line_no} blah: {blah:?}");
 
             let mut entry = Entry::new();
             for (pattern, chars) in patterns.split_whitespace().enumerate() {
@@ -236,8 +205,6 @@ fn main() {
             for prop in soln {
                 println!("{prop:?}");
             }
-
-            panic!("First iteration.");
         });
 }
 
