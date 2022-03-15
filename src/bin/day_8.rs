@@ -1,19 +1,19 @@
 use splr::Certificate;
 use std::clone::Clone;
-use std::collections::HashMap;
+// use std::collections::HashMap;
 use std::iter;
 use std::ops::Neg;
 
 // digit -> segments
 // 0 -> 6
-// 1 -> 2
+// 1 -> 2 *
 // 2 -> 5
 // 3 -> 5
-// 4 -> 4
+// 4 -> 4 *
 // 5 -> 5
 // 6 -> 6
-// 7 -> 3
-// 8 -> 7
+// 7 -> 3 *
+// 8 -> 7 *
 // 9 -> 6
 
 /// All the potential propositions in this puzzle.
@@ -171,18 +171,30 @@ fn main() {
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
         .enumerate()
+        // .take(8)
         .for_each(|(line_no, line)| {
             let (patterns, output) = line.split_once("|").unwrap();
             println!("{line_no} patterns: {patterns}");
             println!("{line_no} output: {output}");
-            let blah: Vec<_> = output.split_whitespace().collect();
-            println!("{line_no} blah: {blah:?}");
+            // let blah: Vec<_> = output.split_whitespace().collect();
+            // println!("{line_no} blah: {blah:?}");
 
             let mut entry = Entry::new();
             for (pattern, chars) in patterns.split_whitespace().enumerate() {
                 let pattern = pattern as u8;
                 println!("{pattern} -> {chars}");
-                #[allow(clippy::never_loop)]
+                let digit = match chars.len() {
+                    2 => Some(1),
+                    4 => Some(4),
+                    3 => Some(7),
+                    7 => Some(8),
+                    _ => None,
+                };
+                if let Some(digit) = digit {
+                    entry.clauses.push(vec![
+                        (Proposition::PatternIsDigit { pattern, digit }).to_index()
+                    ]);
+                }
                 for wire in chars.chars() {
                     for (digit, segments) in DIGIT_SEGMENTS.iter().enumerate() {
                         let digit = digit as u8;
