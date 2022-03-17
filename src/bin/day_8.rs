@@ -167,6 +167,12 @@ const DIGIT_SEGMENTS: [&str; 10] = [
     "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
 ];
 
+/// Sort the characters in a string.
+fn sort_chars(s: &str) -> String {
+    let mut s: Vec<char> = s.chars().collect();
+    s.sort_unstable();
+    s.iter().collect()
+}
 fn main() {
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
@@ -174,13 +180,20 @@ fn main() {
         // .take(8)
         .for_each(|(line_no, line)| {
             let (patterns, output) = line.split_once("|").unwrap();
-            println!("{line_no} patterns: {patterns}");
+            let patterns = patterns.split_whitespace();
+            println!(
+                "{line_no} patterns: {:?}",
+                patterns.clone().collect::<Vec<_>>()
+            );
             println!("{line_no} output: {output}");
-            // let blah: Vec<_> = output.split_whitespace().collect();
-            // println!("{line_no} blah: {blah:?}");
 
+            for pattern in patterns.clone() {
+                println!("{} -> {}", pattern, sort_chars(pattern));
+            }
+
+            // Setup the SAT puzzle.
             let mut entry = Entry::new();
-            for (pattern, chars) in patterns.split_whitespace().enumerate() {
+            for (pattern, chars) in patterns.enumerate() {
                 let pattern = pattern as u8;
                 println!("{pattern} -> {chars}");
                 let digit = match chars.len() {
@@ -213,10 +226,14 @@ fn main() {
                     }
                 }
             }
+
+            // Solve the SAT puzzle.
             let soln = entry.solve();
             for prop in soln {
                 println!("{prop:?}");
             }
+
+            //
         });
 }
 
