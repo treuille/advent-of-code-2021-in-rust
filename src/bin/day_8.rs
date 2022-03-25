@@ -1,6 +1,6 @@
 use splr::Certificate;
 use std::clone::Clone;
-// use std::collections::HashMap;
+use std::collections::HashMap;
 use std::iter;
 use std::ops::Neg;
 
@@ -174,26 +174,19 @@ fn sort_chars(s: &str) -> String {
     s.iter().collect()
 }
 fn main() {
-    include_str!("../../puzzle_inputs/day_8.txt")
+    let digits: Vec<Vec<u8>> = include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
         .enumerate()
-        // .take(8)
-        .for_each(|(line_no, line)| {
+        .map(|(line_no, line)| {
             let (patterns, output) = line.split_once("|").unwrap();
-            let patterns = patterns.split_whitespace();
-            println!(
-                "{line_no} patterns: {:?}",
-                patterns.clone().collect::<Vec<_>>()
-            );
-            println!("{line_no} output: {output}");
-
-            for pattern in patterns.clone() {
-                println!("{} -> {}", pattern, sort_chars(pattern));
-            }
+            let patterns: Vec<&str> = patterns.split_whitespace().collect();
+            let output: Vec<&str> = output.split_whitespace().collect();
+            println!("{line_no} patterns: {patterns:?}");
+            println!("{line_no} output: {output:?}");
 
             // Setup the SAT puzzle.
             let mut entry = Entry::new();
-            for (pattern, chars) in patterns.enumerate() {
+            for (pattern, chars) in patterns.iter().enumerate() {
                 let pattern = pattern as u8;
                 println!("{pattern} -> {chars}");
                 let digit = match chars.len() {
@@ -229,12 +222,56 @@ fn main() {
 
             // Solve the SAT puzzle.
             let soln = entry.solve();
-            for prop in soln {
+            for prop in soln.iter() {
                 println!("{prop:?}");
             }
 
-            //
-        });
+            // Create a mapping from characters to digits
+            let digit_map: HashMap<String, u8> =
+                HashMap::from_iter(soln.iter().filter_map(|prop| match prop {
+                    Proposition::PatternIsDigit { pattern, digit } => {
+                        Some((sort_chars(patterns[*pattern as usize]), *digit))
+                    }
+                    _ => None,
+                }));
+            println!("digits: {digit_map:?}");
+            let output: Vec<u8> = output
+                .iter()
+                .map(|chars| digit_map[&sort_chars(chars)])
+                .collect();
+
+            println!("output_digits: output");
+
+            // println!("count: {count:?}");
+
+            // for prop in soln {
+            //     if let
+            //         println!("{pattern} -> {digit}");
+            //     }
+            // }
+            output
+        })
+        .collect();
+
+    println!("digits: {digits:?}");
+
+    let count = digits
+        .iter()
+        .flatten()
+        .filter(|&&x| x == 1 || x == 4 || x == 7 || x == 8)
+        .count();
+    println!("8a: {count}");
+
+    let answer: usize = digits
+        .iter()
+        .map(|digits| {
+            digits
+                .iter()
+                .fold(0usize, |result, &digit| result * 10 + (digit as usize))
+        })
+        .sum();
+
+    println!("8b: {answer}");
 }
 
 #[allow(dead_code)]
