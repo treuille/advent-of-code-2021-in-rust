@@ -161,8 +161,36 @@ fn sort_chars(s: &str) -> String {
     s.sort_unstable();
     s.iter().collect()
 }
+
 fn main() {
-    let digits: Vec<Vec<u8>> = include_str!("../../puzzle_inputs/day_8.txt")
+    let digits: Vec<Vec<u8>> = solve_for_digits();
+    println!("digits: {digits:?}");
+
+    println!("Puzzle 8a: {} (387)", solve_8a(&digits));
+    println!("Puzzle !8b: {} (986034)", solve_8b(&digits));
+}
+
+fn solve_8a(digits: &[Vec<u8>]) -> usize {
+    digits
+        .iter()
+        .flatten()
+        .filter(|&&x| x == 1 || x == 4 || x == 7 || x == 8)
+        .count()
+}
+
+fn solve_8b(digits: &[Vec<u8>]) -> usize {
+    digits
+        .iter()
+        .map(|digits| {
+            digits
+                .iter()
+                .fold(0usize, |result, &digit| result * 10 + (digit as usize))
+        })
+        .sum()
+}
+
+fn solve_for_digits() -> Vec<Vec<u8>> {
+    include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
         .enumerate()
         .map(|(line_no, line)| {
@@ -229,36 +257,9 @@ fn main() {
                 .collect();
 
             println!("output_digits: output");
-
-            // println!("count: {count:?}");
-
-            // for prop in soln {
-            //     if let
-            //         println!("{pattern} -> {digit}");
-            //     }
-            // }
             output
         })
-        .collect();
-
-    println!("digits: {digits:?}");
-
-    let count = digits
-        .iter()
-        .flatten()
-        .filter(|&&x| x == 1 || x == 4 || x == 7 || x == 8)
-        .count();
-    println!("Puzzle 8a: {count} (387)");
-
-    let answer: usize = digits
-        .iter()
-        .map(|digits| {
-            digits
-                .iter()
-                .fold(0usize, |result, &digit| result * 10 + (digit as usize))
-        })
-        .sum();
-    println!("Puzzle 8b: {answer} (986034)");
+        .collect()
 }
 
 #[cfg(test)]
