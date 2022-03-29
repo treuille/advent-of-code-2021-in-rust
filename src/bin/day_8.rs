@@ -20,6 +20,7 @@ enum Proposition {
     WireIsNotSegment { wire: char, segment: char },
 }
 
+/// One line of the puzzle
 struct Entry {
     /// Map from Literals to thier index in self.clauses
     literals: HashMap<Proposition, i32>,
@@ -28,7 +29,6 @@ struct Entry {
     clauses: Vec<Vec<i32>>,
 }
 
-/// One line of the puzzle
 impl Entry {
     fn new() -> Self {
         let mut myself = Self {
@@ -48,15 +48,6 @@ impl Entry {
             segment,
         });
 
-        // Each wire must represent at least one segment.. DELETE THIS
-        for wire in 'a'..='g' {
-            myself.add_clause(
-                &('a'..='g')
-                    .map(|segment| Proposition::WireIsSegment { wire, segment })
-                    .collect::<Vec<_>>(),
-            );
-        }
-
         myself
     }
 
@@ -68,18 +59,15 @@ impl Entry {
 
     /// Returns a vector of propositions which solves this entry.
     fn solve(self) -> Vec<Proposition> {
-        match Certificate::try_from(self.clauses).unwrap() {
-            Certificate::UNSAT => {
-                panic!("Not satisfied.");
-            }
-            Certificate::SAT(soln) => {
-                // Invert the literals table
-                let mut indices: HashMap<i32, Proposition> =
-                    HashMap::from_iter(self.literals.into_iter().map(|(k, v)| (v, k)));
-                soln.into_iter()
-                    .filter_map(|index| indices.remove(&index))
-                    .collect()
-            }
+        if let Ok(Certificate::SAT(soln)) = Certificate::try_from(self.clauses) {
+            // Invert the literals table
+            let mut indices: HashMap<i32, Proposition> =
+                HashMap::from_iter(self.literals.into_iter().map(|(k, v)| (v, k)));
+            soln.into_iter()
+                .filter_map(|index| indices.remove(&index))
+                .collect()
+        } else {
+            panic!("Not satisfied.")
         }
     }
 
@@ -108,23 +96,13 @@ impl Entry {
         R: Iterator<Item = T> + Clone,
         F: Fn(T, T) -> Proposition,
     {
-        // There cannot be two arrows from any element in the domain
-        for x in range.clone() {
-            for y1 in range.clone() {
-                for y2 in range.clone() {
-                    if y1 != y2 {
-                        self.add_clause(&[to_proposition(x, y1), to_proposition(x, y2)]);
-                    }
-                }
-            }
-        }
-
-        // There cannot be two arrows into any element in the domain
+        // There cannot be two arrows to or from any element in the domain
         for x1 in range.clone() {
             for x2 in range.clone() {
                 if x1 != x2 {
-                    for y in range.clone() {
-                        self.add_clause(&[to_proposition(x1, y), to_proposition(x2, y)]);
+                    for x3 in range.clone() {
+                        self.add_clause(&[to_proposition(x3, x1), to_proposition(x3, x2)]);
+                        self.add_clause(&[to_proposition(x1, x3), to_proposition(x2, x3)]);
                     }
                 }
             }
