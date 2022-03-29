@@ -3,9 +3,9 @@ use std::clone::Clone;
 use std::collections::HashMap;
 use std::ops::Neg;
 
-/// All the potential propositions in this puzzle.
+/// All the potential literals in this puzzle.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-enum Proposition {
+enum Literal {
     /// True if `pattern` represents digit `digit`.
     PatternIsDigit { pattern: u8, digit: u8 },
 
@@ -22,7 +22,7 @@ enum Proposition {
 /// One line of the puzzle
 struct Entry {
     /// Map from Literals to thier index in self.clauses
-    literals: HashMap<Proposition, i32>,
+    literals: HashMap<Literal, i32>,
 
     /// The clauses of this entry in conjunctive normal form.
     clauses: Vec<Vec<i32>>,
@@ -36,13 +36,13 @@ impl Entry {
         };
 
         // Each pattern must represent *exactly* one digit.
-        myself.create_bijection(0..10, |pattern, digit| Proposition::PatternIsNotDigit {
+        myself.create_bijection(0..10, |pattern, digit| Literal::PatternIsNotDigit {
             pattern,
             digit,
         });
 
         // Each wire must represent *exactly* one segment.
-        myself.create_bijection('a'..='g', |wire, segment| Proposition::WireIsNotSegment {
+        myself.create_bijection('a'..='g', |wire, segment| Literal::WireIsNotSegment {
             wire,
             segment,
         });
@@ -51,16 +51,16 @@ impl Entry {
     }
 
     /// Adds a clause to this entry
-    fn add_clause(&mut self, clause: &[Proposition]) {
+    fn add_clause(&mut self, clause: &[Literal]) {
         let clause_indices = clause.iter().map(|p| self.get_index(p)).collect();
         self.clauses.push(clause_indices);
     }
 
-    /// Returns a vector of propositions which solves this entry.
-    fn solve(self) -> Vec<Proposition> {
+    /// Returns a vector of literals which solves this entry.
+    fn solve(self) -> Vec<Literal> {
         if let Ok(Certificate::SAT(soln)) = Certificate::try_from(self.clauses) {
             // Invert the literals table
-            let mut indices: HashMap<i32, Proposition> =
+            let mut indices: HashMap<i32, Literal> =
                 HashMap::from_iter(self.literals.into_iter().map(|(k, v)| (v, k)));
             soln.into_iter()
                 .filter_map(|index| indices.remove(&index))
@@ -71,13 +71,13 @@ impl Entry {
     }
 
     /// Converts a literal to an i32 index.
-    fn get_index(&mut self, literal: &Proposition) -> i32 {
+    fn get_index(&mut self, literal: &Literal) -> i32 {
         match literal {
-            &Proposition::PatternIsNotDigit { pattern, digit } => self
-                .get_index(&Proposition::PatternIsDigit { pattern, digit })
+            &Literal::PatternIsNotDigit { pattern, digit } => self
+                .get_index(&Literal::PatternIsDigit { pattern, digit })
                 .neg(),
-            &Proposition::WireIsNotSegment { wire, segment } => self
-                .get_index(&Proposition::WireIsSegment { wire, segment })
+            &Literal::WireIsNotSegment { wire, segment } => self
+                .get_index(&Literal::WireIsSegment { wire, segment })
                 .neg(),
             literal => {
                 let next_index = self.literals.len() + 1;
@@ -89,19 +89,19 @@ impl Entry {
         }
     }
 
-    fn create_bijection<T, R, F>(&mut self, range: R, to_proposition: F)
+    fn create_bijection<T, R, F>(&mut self, range: R, to_literal: F)
     where
         T: PartialEq + Eq + Copy,
         R: Iterator<Item = T> + Clone,
-        F: Fn(T, T) -> Proposition,
+        F: Fn(T, T) -> Literal,
     {
         // There cannot be two arrows to or from any element in the domain
         for x1 in range.clone() {
             for x2 in range.clone() {
                 if x1 != x2 {
                     for x3 in range.clone() {
-                        self.add_clause(&[to_proposition(x3, x1), to_proposition(x3, x2)]);
-                        self.add_clause(&[to_proposition(x1, x3), to_proposition(x2, x3)]);
+                        self.add_clause(&[to_literal(x3, x1), to_literal(x3, x2)]);
+                        self.add_clause(&[to_literal(x1, x3), to_literal(x2, x3)]);
                     }
                 }
             }
@@ -175,13 +175,13 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                 let pattern = pattern as u8;
                 let mut potential_digits = Vec::new();
                 for &digit in len_to_digits[&chars.len()].iter() {
-                    potential_digits.push(Proposition::PatternIsDigit { pattern, digit });
+                    potential_digits.push(Literal::PatternIsDigit { pattern, digit });
                     let segments = DIGIT_SEGMENTS[digit as usize];
                     for wire in chars.chars() {
                         let mut implied_segments =
-                            vec![Proposition::PatternIsNotDigit { pattern, digit }];
+                            vec![Literal::PatternIsNotDigit { pattern, digit }];
                         for segment in segments.chars() {
-                            implied_segments.push(Proposition::WireIsSegment { wire, segment });
+                            implied_segments.push(Literal::WireIsSegment { wire, segment });
                         }
                         entry.add_clause(&implied_segments);
                     }
@@ -192,8 +192,8 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
             // Solve the SAT puzzle to create a mapping from characters to digits
             let soln = entry.solve();
             let digit_map: HashMap<String, u8> =
-                HashMap::from_iter(soln.iter().filter_map(|prop| match prop {
-                    Proposition::PatternIsDigit { pattern, digit } => {
+                HashMap::from_iter(soln.iter().filter_map(|literal| match literal {
+                    Literal::PatternIsDigit { pattern, digit } => {
                         Some((sort_chars(patterns[*pattern as usize]), *digit))
                     }
                     _ => None,
