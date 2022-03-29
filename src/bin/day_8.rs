@@ -1,7 +1,6 @@
 use splr::Certificate;
 use std::clone::Clone;
 use std::collections::HashMap;
-use std::iter;
 use std::ops::Neg;
 
 /// All the potential propositions in this puzzle.
@@ -124,7 +123,6 @@ fn sort_chars(s: &str) -> String {
 
 fn main() {
     let digits: Vec<Vec<u8>> = solve_for_digits();
-    println!("digits: {digits:?}");
 
     println!("Puzzle 8a: {} (387)", solve_8a(&digits));
     println!("Puzzle 8b: {} (986034)", solve_8b(&digits));
@@ -166,19 +164,15 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
 
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
-        .enumerate()
-        .map(|(line_no, line)| {
+        .map(|line| {
             let (patterns, output) = line.split_once("|").unwrap();
             let patterns: Vec<&str> = patterns.split_whitespace().collect();
             let output: Vec<&str> = output.split_whitespace().collect();
-            println!("{line_no} patterns: {patterns:?}");
-            println!("{line_no} output: {output:?}");
 
             // Setup the SAT puzzle.
             let mut entry = Entry::new();
             for (pattern, chars) in patterns.iter().enumerate() {
                 let pattern = pattern as u8;
-                println!("{pattern} -> {chars}");
                 let mut potential_digits = Vec::new();
                 for &digit in len_to_digits[&chars.len()].iter() {
                     potential_digits.push(Proposition::PatternIsDigit { pattern, digit });
@@ -195,13 +189,8 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                 entry.add_clause(&potential_digits);
             }
 
-            // Solve the SAT puzzle.
+            // Solve the SAT puzzle to create a mapping from characters to digits
             let soln = entry.solve();
-            for prop in soln.iter() {
-                println!("{prop:?}");
-            }
-
-            // Create a mapping from characters to digits
             let digit_map: HashMap<String, u8> =
                 HashMap::from_iter(soln.iter().filter_map(|prop| match prop {
                     Proposition::PatternIsDigit { pattern, digit } => {
