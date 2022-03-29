@@ -10,8 +10,14 @@ enum Proposition {
     /// True if `pattern` represents digit `digit`.
     PatternIsDigit { pattern: u8, digit: u8 },
 
+    /// Negation of PatternIsDigit
+    PatternIsNotDigit { pattern: u8, digit: u8 },
+
     /// True if `wire` maps to `segment`.
     WireIsSegment { wire: char, segment: char },
+
+    /// Negation of WireIsSegment
+    WireIsNotSegment { wire: char, segment: char },
 }
 
 impl Proposition {
@@ -25,11 +31,22 @@ impl Proposition {
                 let digit = digit as i32;
                 10 * pattern + digit + 1
             }
+            Proposition::PatternIsNotDigit { pattern, digit } => {
+                let pattern = pattern as i32;
+                let digit = digit as i32;
+                (10 * pattern + digit + 1).neg()
+            }
             Proposition::WireIsSegment { wire, segment } => {
                 let a = 'a' as i32;
                 let wire = (wire as i32) - a;
                 let segment = (segment as i32) - a;
                 7 * wire + segment + 101
+            }
+            Proposition::WireIsNotSegment { wire, segment } => {
+                let a = 'a' as i32;
+                let wire = (wire as i32) - a;
+                let segment = (segment as i32) - a;
+                (7 * wire + segment + 101).neg()
             }
         }
     }
@@ -131,6 +148,8 @@ impl Entry {
         }
     }
 
+    /// Adds a clause to this entry
+    fn create_bijection<T, R, F>(&mut self, range: R, to_proposition: F)
     /// Returns a vector of propositions which solves this entry.
     fn solve(self) -> Vec<Proposition> {
         match Certificate::try_from(self.clauses).unwrap() {
