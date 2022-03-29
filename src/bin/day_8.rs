@@ -5,7 +5,7 @@ use std::iter;
 use std::ops::Neg;
 
 /// All the potential propositions in this puzzle.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum Proposition {
     /// True if `pattern` represents digit `digit`.
     PatternIsDigit { pattern: u8, digit: u8 },
@@ -20,73 +20,20 @@ enum Proposition {
     WireIsNotSegment { wire: char, segment: char },
 }
 
-impl Proposition {
-    const MAX_INDEX: i32 = 149;
-
-    /// The the index representing a proposition.
-    fn to_index(&self) -> i32 {
-        match *self {
-            Proposition::PatternIsDigit { pattern, digit } => {
-                let pattern = pattern as i32;
-                let digit = digit as i32;
-                10 * pattern + digit + 1
-            }
-            Proposition::PatternIsNotDigit { pattern, digit } => {
-                let pattern = pattern as i32;
-                let digit = digit as i32;
-                (10 * pattern + digit + 1).neg()
-            }
-            Proposition::WireIsSegment { wire, segment } => {
-                let a = 'a' as i32;
-                let wire = (wire as i32) - a;
-                let segment = (segment as i32) - a;
-                7 * wire + segment + 101
-            }
-            Proposition::WireIsNotSegment { wire, segment } => {
-                let a = 'a' as i32;
-                let wire = (wire as i32) - a;
-                let segment = (segment as i32) - a;
-                (7 * wire + segment + 101).neg()
-            }
-        }
-    }
-
-    // /// The the index representing the negation of a proposition.
-    // fn negation_to_index(&self) -> i32 {
-    //     self.to_index().neg()
-    // }
-
-    /// Converts a positive index back into a proposition
-    fn from_index(index: i32) -> Self {
-        if index <= 0 {
-            panic!("Indices must be positive.");
-        } else if index <= 100 {
-            Proposition::PatternIsDigit {
-                pattern: ((index - 1) / 10) as u8,
-                digit: ((index - 1) % 10) as u8,
-            }
-        } else if index <= Proposition::MAX_INDEX {
-            let a = 'a' as i32;
-            Proposition::WireIsSegment {
-                wire: ((((index - 101) / 7) + a) as u8) as char,
-                segment: ((((index - 101) % 7) + a) as u8) as char,
-            }
-        } else {
-            panic!("Index {} is too high.", index);
-        }
-    }
-}
-
 struct Entry {
+    /// Map from Literals to thier index in self.clauses
+    literals: HashMap<Proposition, i32>,
+
     /// The clauses of this entry in conjunctive normal form.
-    _clauses: Vec<Vec<i32>>,
+    clauses: Vec<Vec<i32>>,
 }
 
 /// One line of the puzzle
 impl Entry {
     fn new() -> Self {
         let mut myself = Self {
-            _clauses: Vec::new(),
+            literals: HashMap::new(),
+            clauses: Vec::new(),
         };
 
         // Each pattern must represent *exactly* one digit.
@@ -111,6 +58,48 @@ impl Entry {
         }
 
         myself
+    }
+
+    /// Adds a clause to this entry
+    fn add_clause(&mut self, clause: &[Proposition]) {
+        let clause_indices = clause.iter().map(|p| self.get_index(p)).collect();
+        self.clauses.push(clause_indices);
+    }
+
+    /// Returns a vector of propositions which solves this entry.
+    fn solve(self) -> Vec<Proposition> {
+        match Certificate::try_from(self.clauses).unwrap() {
+            Certificate::UNSAT => {
+                panic!("Not satisfied.");
+            }
+            Certificate::SAT(soln) => {
+                // Invert the literals table
+                let mut indices: HashMap<i32, Proposition> =
+                    HashMap::from_iter(self.literals.into_iter().map(|(k, v)| (v, k)));
+                soln.into_iter()
+                    .filter_map(|index| indices.remove(&index))
+                    .collect()
+            }
+        }
+    }
+
+    /// Converts a literal to an i32 index.
+    fn get_index(&mut self, literal: &Proposition) -> i32 {
+        match literal {
+            &Proposition::PatternIsNotDigit { pattern, digit } => self
+                .get_index(&Proposition::PatternIsDigit { pattern, digit })
+                .neg(),
+            &Proposition::WireIsNotSegment { wire, segment } => self
+                .get_index(&Proposition::WireIsSegment { wire, segment })
+                .neg(),
+            literal => {
+                let next_index = self.literals.len() + 1;
+                *self
+                    .literals
+                    .entry(literal.clone())
+                    .or_insert(next_index as i32)
+            }
+        }
     }
 
     fn create_bijection<T, R, F>(&mut self, range: R, to_proposition: F)
@@ -141,31 +130,6 @@ impl Entry {
             }
         }
     }
-
-    /// Adds a clause to this entry
-    fn add_clause(&mut self, clause: &[Proposition]) {
-        self._clauses
-            .push(clause.iter().map(|p| p.to_index()).collect());
-    }
-
-    /// Returns a vector of propositions which solves this entry.
-    fn solve(self) -> Vec<Proposition> {
-        match Certificate::try_from(self._clauses).unwrap() {
-            Certificate::UNSAT => {
-                panic!("Not satisfied.");
-            }
-            Certificate::SAT(soln) => soln
-                .iter()
-                .filter_map(|&index| {
-                    if index > 0 {
-                        Some(Proposition::from_index(index))
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        }
-    }
 }
 
 /// Which segments are shown for each segment.
@@ -185,7 +149,7 @@ fn main() {
     println!("digits: {digits:?}");
 
     println!("Puzzle 8a: {} (387)", solve_8a(&digits));
-    println!("Puzzle !8b: {} (986034)", solve_8b(&digits));
+    println!("Puzzle 8b: {} (986034)", solve_8b(&digits));
 }
 
 fn solve_8a(digits: &[Vec<u8>]) -> usize {
@@ -269,47 +233,10 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                     }
                     _ => None,
                 }));
-            println!("digits: {digit_map:?}");
-            let output: Vec<u8> = output
+            output
                 .iter()
                 .map(|chars| digit_map[&sort_chars(chars)])
-                .collect();
-
-            // panic!("output_digits: output");
-            output
+                .collect()
         })
         .collect()
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     /// Test that convert from propositions to indices and back works.
-//     fn propositions_to_indices() {
-//         for pattern in 0u8..10u8 {
-//             for digit in 0u8..10u8 {
-//                 let prop = Proposition::PatternIsDigit { pattern, digit };
-//                 assert_eq!(prop, Proposition::from_index(prop.to_index()));
-//             }
-//         }
-
-//         for wire in 'a'..='g' {
-//             for segment in 'a'..='g' {
-//                 let prop = Proposition::WireIsSegment { wire, segment };
-//                 assert_eq!(prop, Proposition::from_index(prop.to_index()));
-//             }
-//         }
-//     }
-
-//     #[test]
-//     /// Test that convert from indices to propositions and back works.
-//     fn indices_to_propositions() {
-//         for index in 1..=Proposition::MAX_INDEX {
-//             let prop = Proposition::from_index(index);
-//             assert_eq!(index, prop.to_index());
-//             assert_eq!(index.neg(), prop.negation_to_index());
-//         }
-//     }
-// }
