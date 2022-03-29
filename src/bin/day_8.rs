@@ -191,31 +191,19 @@ fn solve_8b(digits: &[Vec<u8>]) -> usize {
 }
 
 fn solve_for_digits() -> Vec<Vec<u8>> {
-    println!("digit segment: {DIGIT_SEGMENTS:?}");
-
-    DIGIT_SEGMENTS
-        .iter()
-        .for_each(|x| println!("- {:?} {:?}", x, x.len()));
-    println!("min: {:?}", DIGIT_SEGMENTS.iter().map(|x| x.len()).min());
-    println!("max: {:?}", DIGIT_SEGMENTS.iter().map(|x| x.len()).max());
-
     let len_to_digits: HashMap<usize, Vec<u8>> = HashMap::from_iter((2..=7).map(|n_segments| {
         (
             n_segments,
             DIGIT_SEGMENTS
                 .iter()
                 .enumerate()
-                .filter_map(|(i, s)| {
-                    if s.len() == n_segments {
-                        Some(i as u8)
-                    } else {
-                        None
-                    }
+                .filter_map(|pair| match pair {
+                    (i, s) if s.len() == n_segments => Some(i as u8),
+                    _ => None,
                 })
                 .collect(),
         )
     }));
-    println!("segments_to_digits: {len_to_digits:?}");
 
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
