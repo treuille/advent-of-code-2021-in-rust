@@ -184,14 +184,12 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                     potential_digits.push(Proposition::PatternIsDigit { pattern, digit });
                     let segments = DIGIT_SEGMENTS[digit as usize];
                     for wire in chars.chars() {
-                        entry.add_clause(&Vec::from_iter(
-                            segments
-                                .chars()
-                                .map(|segment| Proposition::WireIsSegment { wire, segment })
-                                .chain(iter::once({
-                                    Proposition::PatternIsNotDigit { pattern, digit }
-                                })),
-                        ));
+                        let mut implied_segments =
+                            vec![Proposition::PatternIsNotDigit { pattern, digit }];
+                        for segment in segments.chars() {
+                            implied_segments.push(Proposition::WireIsSegment { wire, segment });
+                        }
+                        entry.add_clause(&implied_segments);
                     }
                 }
                 entry.add_clause(&potential_digits);
