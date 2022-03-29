@@ -149,7 +149,11 @@ impl Entry {
     }
 
     /// Adds a clause to this entry
-    fn create_bijection<T, R, F>(&mut self, range: R, to_proposition: F)
+    fn add_clause(&mut self, clause: &[Proposition]) {
+        self.clauses
+            .push(clause.iter().map(|p| p.to_index()).collect());
+    }
+
     /// Returns a vector of propositions which solves this entry.
     fn solve(self) -> Vec<Proposition> {
         match Certificate::try_from(self.clauses).unwrap() {
