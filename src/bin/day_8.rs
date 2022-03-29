@@ -151,6 +151,7 @@ impl Entry {
     }
 }
 
+/// Which segments are shown for each segment.
 const DIGIT_SEGMENTS: [&str; 10] = [
     "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
 ];
@@ -190,6 +191,32 @@ fn solve_8b(digits: &[Vec<u8>]) -> usize {
 }
 
 fn solve_for_digits() -> Vec<Vec<u8>> {
+    println!("digit segment: {DIGIT_SEGMENTS:?}");
+
+    DIGIT_SEGMENTS
+        .iter()
+        .for_each(|x| println!("- {:?} {:?}", x, x.len()));
+    println!("min: {:?}", DIGIT_SEGMENTS.iter().map(|x| x.len()).min());
+    println!("max: {:?}", DIGIT_SEGMENTS.iter().map(|x| x.len()).max());
+
+    let len_to_digits: HashMap<usize, Vec<u8>> = HashMap::from_iter((2..=7).map(|n_segments| {
+        (
+            n_segments,
+            DIGIT_SEGMENTS
+                .iter()
+                .enumerate()
+                .filter_map(|(i, s)| {
+                    if s.len() == n_segments {
+                        Some(i as u8)
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+        )
+    }));
+    println!("segments_to_digits: {len_to_digits:?}");
+
     include_str!("../../puzzle_inputs/day_8.txt")
         .lines()
         .enumerate()
@@ -205,18 +232,24 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
             for (pattern, chars) in patterns.iter().enumerate() {
                 let pattern = pattern as u8;
                 println!("{pattern} -> {chars}");
-                let digit = match chars.len() {
-                    2 => Some(1),
-                    4 => Some(4),
-                    3 => Some(7),
-                    7 => Some(8),
-                    _ => None,
-                };
-                if let Some(digit) = digit {
-                    entry.clauses.push(vec![
-                        (Proposition::PatternIsDigit { pattern, digit }).to_index()
-                    ]);
-                }
+                entry.clauses.push(
+                    len_to_digits[&chars.len()]
+                        .iter()
+                        .map(|&digit| (Proposition::PatternIsDigit { pattern, digit }).to_index())
+                        .collect(),
+                );
+                // let digit = match chars.len() {
+                //     2 => Some(1),
+                //     4 => Some(4),
+                //     3 => Some(7),
+                //     7 => Some(8),
+                //     _ => None,
+                // };
+                // if let Some(digit) = digit {
+                //     entry.clauses.push(vec![
+                //         (Proposition::PatternIsDigit { pattern, digit }).to_index()
+                //     ]);
+                // }
                 for wire in chars.chars() {
                     for (digit, segments) in DIGIT_SEGMENTS.iter().enumerate() {
                         let digit = digit as u8;
@@ -256,7 +289,7 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                 .map(|chars| digit_map[&sort_chars(chars)])
                 .collect();
 
-            println!("output_digits: output");
+            // panic!("output_digits: output");
             output
         })
         .collect()
