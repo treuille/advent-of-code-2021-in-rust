@@ -51,10 +51,10 @@ impl Proposition {
         }
     }
 
-    /// The the index representing the negation of a proposition.
-    fn negation_to_index(&self) -> i32 {
-        self.to_index().neg()
-    }
+    // /// The the index representing the negation of a proposition.
+    // fn negation_to_index(&self) -> i32 {
+    //     self.to_index().neg()
+    // }
 
     /// Converts a positive index back into a proposition
     fn from_index(index: i32) -> Self {
@@ -79,34 +79,34 @@ impl Proposition {
 
 struct Entry {
     /// The clauses of this entry in conjunctive normal form.
-    clauses: Vec<Vec<i32>>,
+    _clauses: Vec<Vec<i32>>,
 }
 
 /// One line of the puzzle
 impl Entry {
     fn new() -> Self {
         let mut myself = Self {
-            clauses: Vec::new(),
+            _clauses: Vec::new(),
         };
 
         // Each pattern must represent *exactly* one digit.
-        myself.create_bijection(0..10, |pattern, digit| Proposition::PatternIsDigit {
+        myself.create_bijection(0..10, |pattern, digit| Proposition::PatternIsNotDigit {
             pattern,
             digit,
         });
 
         // Each wire must represent *exactly* one segment.
-        myself.create_bijection('a'..='g', |wire, segment| Proposition::WireIsSegment {
+        myself.create_bijection('a'..='g', |wire, segment| Proposition::WireIsNotSegment {
             wire,
             segment,
         });
 
         // Each wire must represent at least one segment.. DELETE THIS
         for wire in 'a'..='g' {
-            myself.clauses.push(
-                ('a'..='g')
-                    .map(|segment| (Proposition::WireIsSegment { wire, segment }).to_index())
-                    .collect(),
+            myself.add_clause(
+                &('a'..='g')
+                    .map(|segment| Proposition::WireIsSegment { wire, segment })
+                    .collect::<Vec<_>>(),
             );
         }
 
@@ -124,10 +124,7 @@ impl Entry {
             for y1 in range.clone() {
                 for y2 in range.clone() {
                     if y1 != y2 {
-                        self.clauses.push(vec![
-                            to_proposition(x, y1).negation_to_index(),
-                            to_proposition(x, y2).negation_to_index(),
-                        ]);
+                        self.add_clause(&[to_proposition(x, y1), to_proposition(x, y2)]);
                     }
                 }
             }
@@ -138,10 +135,7 @@ impl Entry {
             for x2 in range.clone() {
                 if x1 != x2 {
                     for y in range.clone() {
-                        self.clauses.push(vec![
-                            to_proposition(x1, y).negation_to_index(),
-                            to_proposition(x2, y).negation_to_index(),
-                        ]);
+                        self.add_clause(&[to_proposition(x1, y), to_proposition(x2, y)]);
                     }
                 }
             }
@@ -150,13 +144,13 @@ impl Entry {
 
     /// Adds a clause to this entry
     fn add_clause(&mut self, clause: &[Proposition]) {
-        self.clauses
+        self._clauses
             .push(clause.iter().map(|p| p.to_index()).collect());
     }
 
     /// Returns a vector of propositions which solves this entry.
     fn solve(self) -> Vec<Proposition> {
-        match Certificate::try_from(self.clauses).unwrap() {
+        match Certificate::try_from(self._clauses).unwrap() {
             Certificate::UNSAT => {
                 panic!("Not satisfied.");
             }
@@ -245,25 +239,20 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                 println!("{pattern} -> {chars}");
                 let mut potential_digits = Vec::new();
                 for &digit in len_to_digits[&chars.len()].iter() {
-                    potential_digits
-                        .push((Proposition::PatternIsDigit { pattern, digit }).to_index());
+                    potential_digits.push(Proposition::PatternIsDigit { pattern, digit });
                     let segments = DIGIT_SEGMENTS[digit as usize];
                     for wire in chars.chars() {
-                        entry.clauses.push(Vec::from_iter(
+                        entry.add_clause(&Vec::from_iter(
                             segments
                                 .chars()
-                                .map(|segment| {
-                                    let p = Proposition::WireIsSegment { wire, segment };
-                                    p.to_index()
-                                })
+                                .map(|segment| Proposition::WireIsSegment { wire, segment })
                                 .chain(iter::once({
-                                    let p = Proposition::PatternIsDigit { pattern, digit };
-                                    p.negation_to_index()
+                                    Proposition::PatternIsNotDigit { pattern, digit }
                                 })),
                         ));
                     }
                 }
-                entry.clauses.push(potential_digits);
+                entry.add_clause(&potential_digits);
             }
 
             // Solve the SAT puzzle.
@@ -292,35 +281,35 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
         .collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    /// Test that convert from propositions to indices and back works.
-    fn propositions_to_indices() {
-        for pattern in 0u8..10u8 {
-            for digit in 0u8..10u8 {
-                let prop = Proposition::PatternIsDigit { pattern, digit };
-                assert_eq!(prop, Proposition::from_index(prop.to_index()));
-            }
-        }
+//     #[test]
+//     /// Test that convert from propositions to indices and back works.
+//     fn propositions_to_indices() {
+//         for pattern in 0u8..10u8 {
+//             for digit in 0u8..10u8 {
+//                 let prop = Proposition::PatternIsDigit { pattern, digit };
+//                 assert_eq!(prop, Proposition::from_index(prop.to_index()));
+//             }
+//         }
 
-        for wire in 'a'..='g' {
-            for segment in 'a'..='g' {
-                let prop = Proposition::WireIsSegment { wire, segment };
-                assert_eq!(prop, Proposition::from_index(prop.to_index()));
-            }
-        }
-    }
+//         for wire in 'a'..='g' {
+//             for segment in 'a'..='g' {
+//                 let prop = Proposition::WireIsSegment { wire, segment };
+//                 assert_eq!(prop, Proposition::from_index(prop.to_index()));
+//             }
+//         }
+//     }
 
-    #[test]
-    /// Test that convert from indices to propositions and back works.
-    fn indices_to_propositions() {
-        for index in 1..=Proposition::MAX_INDEX {
-            let prop = Proposition::from_index(index);
-            assert_eq!(index, prop.to_index());
-            assert_eq!(index.neg(), prop.negation_to_index());
-        }
-    }
-}
+//     #[test]
+//     /// Test that convert from indices to propositions and back works.
+//     fn indices_to_propositions() {
+//         for index in 1..=Proposition::MAX_INDEX {
+//             let prop = Proposition::from_index(index);
+//             assert_eq!(index, prop.to_index());
+//             assert_eq!(index.neg(), prop.negation_to_index());
+//         }
+//     }
+// }
