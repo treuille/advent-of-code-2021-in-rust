@@ -238,18 +238,6 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
                         .map(|&digit| (Proposition::PatternIsDigit { pattern, digit }).to_index())
                         .collect(),
                 );
-                // let digit = match chars.len() {
-                //     2 => Some(1),
-                //     4 => Some(4),
-                //     3 => Some(7),
-                //     7 => Some(8),
-                //     _ => None,
-                // };
-                // if let Some(digit) = digit {
-                //     entry.clauses.push(vec![
-                //         (Proposition::PatternIsDigit { pattern, digit }).to_index()
-                //     ]);
-                // }
                 for wire in chars.chars() {
                     for (digit, segments) in DIGIT_SEGMENTS.iter().enumerate() {
                         let digit = digit as u8;
