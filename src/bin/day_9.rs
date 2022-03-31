@@ -1,3 +1,5 @@
+use std::num::TryFromIntError;
+
 use ndarray::{s, Array, Array2, Ix1};
 
 fn main() {
@@ -14,6 +16,19 @@ fn main() {
     );
     let cols = flat_input.len() / rows;
     let grid: Array2<u8> = flat_input.into_shape((rows, cols)).unwrap();
+
+    let risk_level_sum: usize = grid
+        .indexed_iter()
+        .filter(|((i, j), height)| {
+            [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                .into_iter()
+                .map(|(di, dj)| (((*i as isize) + di) as usize, ((*j as isize) + dj) as usize))
+                .filter_map(|ij| grid.get(ij))
+                .all(|neighbor_height| neighbor_height > height)
+        })
+        .map(|(_, height)| (*height as usize) + 1)
+        .sum();
     println!("shape: {rows}x{cols}");
     println!("last row: {:?}", grid.slice(s![-1, ..]));
+    println!("risk_level_sum: {risk_level_sum}");
 }
