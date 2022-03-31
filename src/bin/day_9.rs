@@ -1,5 +1,3 @@
-use std::num::TryFromIntError;
-
 use ndarray::{s, Array, Array2, Ix1};
 
 fn main() {
@@ -29,6 +27,13 @@ fn main() {
         .map(|(_, height)| (*height as usize) + 1)
         .sum();
     println!("shape: {rows}x{cols}");
+    println!("shape: {:?}", grid.shape());
     println!("last row: {:?}", grid.slice(s![-1, ..]));
     println!("risk_level_sum: {risk_level_sum}");
 }
+
+// TODO:
+// 1. Split out neighbors: (shape, ij) -> Iterator<Item=ij>
+// 2. Split out lowest_points(grid) -> Vec<(ij, x)>
+// 3. Write solve_9a (lowest_points)
+// 4. Write a flood fill to solve_9b (grid, lowest_points)
