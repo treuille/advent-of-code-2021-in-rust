@@ -1,4 +1,5 @@
 use ndarray::{s, Array, Array2, Ix1};
+use std::iter::Iterator;
 
 fn main() {
     // Parse the input into an Array2<u8>
@@ -31,6 +32,21 @@ fn main() {
     println!("last row: {:?}", grid.slice(s![-1, ..]));
     println!("risk_level_sum: {risk_level_sum}");
 }
+
+fn neighbors(
+    &(i, j): &(usize, usize),
+    &[w, h]: &[usize; 2],
+) -> impl Iterator<Item = (usize, usize)> {
+    [
+        (i > 0).then(|| (i - 1, j)),
+        (i < w - 1).then(|| (i + 1, j)),
+        (j > 0).then(|| (i, j - 1)),
+        (j < h - 1).then(|| (i, j + 1)),
+    ]
+    .into_iter()
+    .flatten()
+}
+
 
 // TODO:
 // 1. Split out neighbors: (shape, ij) -> Iterator<Item=ij>
