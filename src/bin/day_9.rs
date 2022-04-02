@@ -1,5 +1,6 @@
 // use ndarray::{s, Array, Array2, Ix1};
-use ndarray::{Array, Array2, Ix1};
+// use ndarray::{Array, Array2, ArrayView2, Ix1};
+use ndarray::prelude::*;
 use std::iter::Iterator;
 
 type Pt = (usize, usize);
@@ -19,12 +20,9 @@ fn main() {
     let shape = (rows, flat_input.len() / rows);
     let heights: Array2<u8> = flat_input.into_shape(shape).unwrap();
 
-    let risk_level_sum: usize = heights
-        .indexed_iter()
-        .filter(|(ij, &ij_height)| {
-            neighbors(ij, heights.shape()).all(|neighbor| heights[neighbor] > ij_height)
-        })
-        .map(|(_, height)| (*height as usize) + 1)
+    let risk_level_sum: usize = lowest_points(&heights)
+        .iter()
+        .map(|(_, &height)| (height as usize) + 1)
         .sum();
     println!("shape: {shape:?}");
     // println!("shape: {:?}", grid.shape());
@@ -32,8 +30,7 @@ fn main() {
     println!("risk_level_sum: {risk_level_sum}");
 }
 
-fn neighbors(&(i, j): &Pt, shape: &[usize]) -> impl Iterator<Item = Pt> {
-    let (w, h) = (shape[0], shape[1]);
+fn neighbors(&(i, j): &Pt, &(w, h): &Pt) -> impl Iterator<Item = Pt> {
     [
         (i > 0).then(|| (i - 1, j)),
         (i < w - 1).then(|| (i + 1, j)),
@@ -42,6 +39,15 @@ fn neighbors(&(i, j): &Pt, shape: &[usize]) -> impl Iterator<Item = Pt> {
     ]
     .into_iter()
     .flatten()
+}
+
+/// Finds all the lowerst point in the height map.
+fn lowest_points(heights: &Array2<u8>) -> Vec<(Pt, &u8)> {
+    let shape = (heights.shape()[0], heights.shape()[1]);
+    heights
+        .indexed_iter()
+        .filter(|(ij, &height)| neighbors(ij, &shape).all(|neighbor| heights[neighbor] > height))
+        .collect()
 }
 
 #[cfg(test)]
