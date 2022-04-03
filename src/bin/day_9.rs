@@ -1,6 +1,5 @@
-// use ndarray::{s, Array, Array2, Ix1};
-// use ndarray::{Array, Array2, ArrayView2, Ix1};
 use ndarray::prelude::*;
+use std::collections::HashSet;
 use std::iter::Iterator;
 
 type Pt = (usize, usize);
@@ -20,16 +19,40 @@ fn main() {
     let shape = (rows, flat_input.len() / rows);
     let heights: Array2<u8> = flat_input.into_shape(shape).unwrap();
 
-    let risk_level_sum: usize = lowest_points(&heights)
-        .iter()
-        .map(|(_, &height)| (height as usize) + 1)
-        .sum();
-    println!("shape: {shape:?}");
-    // println!("shape: {:?}", grid.shape());
-    // println!("last row: {:?}", grid.slice(s![-1, ..]));
-    println!("risk_level_sum: {risk_level_sum}");
+    let lowest_points: Vec<(Pt, &u8)> = lowest_points(&heights);
+    println!("Puzzle 9a: {} (387)", solve_9a(&lowest_points));
+    println!("Puzzle 9b: {} (xyz)", solve_9b(&heights, &lowest_points));
 }
 
+fn solve_9a(lowest_points: &[(Pt, &u8)]) -> usize {
+    lowest_points
+        .iter()
+        .map(|(_, &height)| (height as usize) + 1)
+        .sum()
+}
+
+fn solve_9b(heights: &Array2<u8>, lowest_points: &[(Pt, &u8)]) -> usize {
+    let shape = (heights.shape()[0], heights.shape()[1]);
+    let mut basin_sizes: Vec<usize> = lowest_points
+        .iter()
+        .map(|(ij, _)| {
+            let mut candidate_pts: Vec<Pt> = vec![*ij];
+            let mut basin: HashSet<Pt> = HashSet::new();
+            while let Some(ij) = candidate_pts.pop() {
+                if !basin.contains(&ij) {
+                    basin.insert(ij);
+                    candidate_pts
+                        .extend(neighbors(&ij, &shape).filter(|neighbor| heights[*neighbor] != 9));
+                }
+            }
+            basin.len()
+        })
+        .collect();
+    basin_sizes.sort_unstable();
+    basin_sizes[(basin_sizes.len() - 3)..].iter().product()
+}
+
+/// Iterate over the neighboring points to a point in the 2D array.
 fn neighbors(&(i, j): &Pt, &(w, h): &Pt) -> impl Iterator<Item = Pt> {
     [
         (i > 0).then(|| (i - 1, j)),
@@ -64,12 +87,12 @@ mod tests {
         ]
         .into_iter()
         .for_each(|(ij, answer)| {
-            let neighbors: Vec<Pt> = neighbors(&ij, &[3, 3]).collect();
+            let neighbors: Vec<Pt> = neighbors(&ij, &(3, 3)).collect();
             assert_eq!(neighbors, answer);
         });
     }
 }
 // TODO:
-// 2. Split out lowest_points(grid) -> Vec<(ij, x)> j
+//
 // 3. Write solve_9a (lowest_points)
 // 4. Write a flood fill to solve_9b (grid, lowest_points)
