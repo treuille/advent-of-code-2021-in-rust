@@ -5,23 +5,10 @@ use std::iter::Iterator;
 type Pt = (usize, usize);
 
 fn main() {
-    // Parse the input into an Array2<u8>
-    let lines: Vec<&str> = include_str!("../../puzzle_inputs/day_9.txt")
-        .lines()
-        .collect();
-    let rows = lines.len();
-
-    let flat_input: Array<u8, Ix1> = Array::from_iter(
-        lines
-            .iter()
-            .flat_map(|line| line.chars().map(|c| c.to_string().parse().unwrap())),
-    );
-    let shape = (rows, flat_input.len() / rows);
-    let heights: Array2<u8> = flat_input.into_shape(shape).unwrap();
-
+    let heights: Array2<u8> = read_input();
     let lowest_points: Vec<(Pt, &u8)> = lowest_points(&heights);
-    println!("Puzzle 9a: {} (387)", solve_9a(&lowest_points));
-    println!("Puzzle 9b: {} (xyz)", solve_9b(&heights, &lowest_points));
+    println!("9a: {} (550)", solve_9a(&lowest_points));
+    println!("9b: {} (1100682)", solve_9b(&heights, &lowest_points));
 }
 
 fn solve_9a(lowest_points: &[(Pt, &u8)]) -> usize {
@@ -52,6 +39,22 @@ fn solve_9b(heights: &Array2<u8>, lowest_points: &[(Pt, &u8)]) -> usize {
     basin_sizes[(basin_sizes.len() - 3)..].iter().product()
 }
 
+/// Read the input file and turn it into an Array2<u8>
+fn read_input() -> Array2<u8> {
+    let lines: Vec<&str> = include_str!("../../puzzle_inputs/day_9.txt")
+        .lines()
+        .collect();
+    let rows = lines.len();
+
+    let flat_input: Array<u8, Ix1> = Array::from_iter(
+        lines
+            .iter()
+            .flat_map(|line| line.chars().map(|c| c.to_string().parse().unwrap())),
+    );
+    let shape = (rows, flat_input.len() / rows);
+    flat_input.into_shape(shape).unwrap()
+}
+
 /// Iterate over the neighboring points to a point in the 2D array.
 fn neighbors(&(i, j): &Pt, &(w, h): &Pt) -> impl Iterator<Item = Pt> {
     [
@@ -72,27 +75,3 @@ fn lowest_points(heights: &Array2<u8>) -> Vec<(Pt, &u8)> {
         .filter(|(ij, &height)| neighbors(ij, &shape).all(|neighbor| heights[neighbor] > height))
         .collect()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn neighbors_works() {
-        [
-            ((0, 0), vec![(1, 0), (0, 1)]),
-            ((1, 0), vec![(0, 0), (2, 0), (1, 1)]),
-            ((1, 1), vec![(0, 1), (2, 1), (1, 0), (1, 2)]),
-            ((2, 1), vec![(1, 1), (2, 0), (2, 2)]),
-        ]
-        .into_iter()
-        .for_each(|(ij, answer)| {
-            let neighbors: Vec<Pt> = neighbors(&ij, &(3, 3)).collect();
-            assert_eq!(neighbors, answer);
-        });
-    }
-}
-// TODO:
-//
-// 3. Write solve_9a (lowest_points)
-// 4. Write a flood fill to solve_9b (grid, lowest_points)
