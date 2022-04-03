@@ -26,10 +26,9 @@ fn solve_9b(heights: &Array2<u8>, lowest_points: &[(Pt, &u8)]) -> usize {
             let mut candidate_pts: Vec<Pt> = vec![*ij];
             let mut basin: HashSet<Pt> = HashSet::new();
             while let Some(ij) = candidate_pts.pop() {
-                if !basin.contains(&ij) {
+                if !(heights[ij] == 9 || basin.contains(&ij)) {
                     basin.insert(ij);
-                    candidate_pts
-                        .extend(neighbors(&ij, &shape).filter(|neighbor| heights[*neighbor] != 9));
+                    candidate_pts.extend(neighbors(&ij, &shape));
                 }
             }
             basin.len()
