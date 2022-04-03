@@ -12,7 +12,7 @@ fn solve_10a(lines: &[Result<char, String>]) -> usize {
             Ok(']') => Some(57),
             Ok('}') => Some(1197),
             Ok('>') => Some(25137),
-            Ok(c) => panic!("Unspected char: {c}"),
+            Ok(c) => panic!("Unexpected char: {c}"),
             _ => None,
         })
         .sum()
@@ -29,7 +29,7 @@ fn solve_10b(lines: &[Result<char, String>]) -> usize {
                     '[' => 2,
                     '{' => 3,
                     '<' => 4,
-                    c => panic!("Unspected char: {c}"),
+                    c => panic!("Unexpected char: {c}"),
                 }) + 5 * result
             })),
         })
