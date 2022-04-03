@@ -35,23 +35,20 @@ fn solve_9b(heights: &Array2<u8>, lowest_points: &[(Pt, &u8)]) -> usize {
         })
         .collect();
     basin_sizes.sort_unstable();
-    basin_sizes[(basin_sizes.len() - 3)..].iter().product()
+    basin_sizes.iter().rev().take(3).product()
 }
 
 /// Read the input file and turn it into an Array2<u8>
 fn read_input() -> Array2<u8> {
-    let lines: Vec<&str> = include_str!("../../puzzle_inputs/day_9.txt")
+    let rows: Vec<Array2<u8>> = include_str!("../../puzzle_inputs/day_9.txt")
         .lines()
+        .map(|line| {
+            Array1::from_iter(line.chars().map(|c| c.to_string().parse().unwrap()))
+                .insert_axis(Axis(0))
+        })
         .collect();
-    let rows = lines.len();
-
-    let flat_input: Array<u8, Ix1> = Array::from_iter(
-        lines
-            .iter()
-            .flat_map(|line| line.chars().map(|c| c.to_string().parse().unwrap())),
-    );
-    let shape = (rows, flat_input.len() / rows);
-    flat_input.into_shape(shape).unwrap()
+    let row_views: Vec<ArrayView2<u8>> = rows.iter().map(ArrayView2::from).collect();
+    ndarray::concatenate(Axis(0), &row_views).unwrap()
 }
 
 /// Iterate over the neighboring points to a point in the 2D array.
@@ -66,7 +63,7 @@ fn neighbors(&(i, j): &Pt, &(w, h): &Pt) -> impl Iterator<Item = Pt> {
     .flatten()
 }
 
-/// Finds all the lowerst point in the height map.
+/// Finds all the lowest point in the height map.
 fn lowest_points(heights: &Array2<u8>) -> Vec<(Pt, &u8)> {
     let shape = (heights.shape()[0], heights.shape()[1]);
     heights
