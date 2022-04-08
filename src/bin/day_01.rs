@@ -4,7 +4,7 @@ fn main() {
 }
 
 fn solve_puzzle(window_size: usize) -> usize {
-    include_str!("../../puzzle_inputs/day_1.txt")
+    include_str!("../../puzzle_inputs/day_01.txt")
         .lines()
         .filter_map(|x| x.parse().ok())
         .collect::<Vec<usize>>()

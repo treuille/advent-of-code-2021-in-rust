@@ -1,7 +1,7 @@
 fn main() {
     // Parse the input
     let mut generations = [0usize; 9];
-    include_str!("../../puzzle_inputs/day_6.txt")
+    include_str!("../../puzzle_inputs/day_06.txt")
         .trim()
         .split(',')
         .for_each(|s| {

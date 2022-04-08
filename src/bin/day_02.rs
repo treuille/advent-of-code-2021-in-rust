@@ -10,7 +10,7 @@ where
     F: Fn(State, &str, isize) -> State,
 {
     let (x, y, _) =
-        include_str!("../../puzzle_inputs/day_2.txt")
+        include_str!("../../puzzle_inputs/day_02.txt")
             .lines()
             .fold((0, 0, 0), |state, line| {
                 let (direction, distance) = line.split_once(" ").unwrap();

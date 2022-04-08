@@ -42,7 +42,7 @@ fn solve_puzzle_b(lines: &[String], n_columns: usize) -> usize {
 
 /// Loads the input and a the number of  characters in each column.
 fn load_input() -> (Vec<String>, usize) {
-    let lines: Vec<String> = include_str!("../../puzzle_inputs/day_3.txt")
+    let lines: Vec<String> = include_str!("../../puzzle_inputs/day_03.txt")
         .lines()
         .map(String::from)
         .collect();

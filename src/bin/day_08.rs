@@ -162,7 +162,7 @@ fn solve_for_digits() -> Vec<Vec<u8>> {
         )
     }));
 
-    include_str!("../../puzzle_inputs/day_8.txt")
+    include_str!("../../puzzle_inputs/day_08.txt")
         .lines()
         .map(|line| {
             let (patterns, output) = line.split_once("|").unwrap();

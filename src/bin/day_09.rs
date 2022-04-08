@@ -40,7 +40,7 @@ fn solve_9b(heights: &Array2<u8>, lowest_points: &[(Pt, &u8)]) -> usize {
 
 /// Read the input file and turn it into an Array2<u8>
 fn read_input() -> Array2<u8> {
-    let rows: Vec<Array2<u8>> = include_str!("../../puzzle_inputs/day_9.txt")
+    let rows: Vec<Array2<u8>> = include_str!("../../puzzle_inputs/day_09.txt")
         .lines()
         .map(|line| {
             Array1::from_iter(line.chars().map(|c| c.to_string().parse().unwrap()))

@@ -2,7 +2,7 @@ use ndarray::{Array, Array2, Axis};
 use std::mem;
 
 fn main() {
-    let input = include_str!("../../puzzle_inputs/day_4.txt");
+    let input = include_str!("../../puzzle_inputs/day_04.txt");
     let elts: Vec<_> = input.split_terminator("\n\n").collect();
     let (guesses, boards) = elts.split_first().unwrap();
 

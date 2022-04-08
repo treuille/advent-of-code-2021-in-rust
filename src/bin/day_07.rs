@@ -1,5 +1,5 @@
 fn main() {
-    let mut input: Vec<isize> = include_str!("../../puzzle_inputs/day_7.txt")
+    let mut input: Vec<isize> = include_str!("../../puzzle_inputs/day_07.txt")
         .trim()
         .split(',')
         .map(|s| s.parse().unwrap())

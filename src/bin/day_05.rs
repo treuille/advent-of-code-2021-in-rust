@@ -13,7 +13,7 @@ fn main() {
 fn solve(skip_diagonals: bool) -> usize {
     let mut terrain: Array2<u16> = Array2::default((1000, 1000));
     let re = Regex::new(r"(\d+),(\d+) -> (\d+),(\d+)").unwrap();
-    let input = include_str!("../../puzzle_inputs/day_5.txt");
+    let input = include_str!("../../puzzle_inputs/day_05.txt");
     for line in input.lines() {
         let caps = re.captures(line).unwrap();
         let x1: usize = caps[1].parse().unwrap();
