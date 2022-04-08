@@ -1,22 +1,45 @@
+/// This is the puzzle input I got.
+const PUZZLE_INPUT: &str = "
+6227618536
+2368158384
+5385414113
+4556757523
+6746486724
+4881323884
+4648263744
+4871332872
+4724128228
+4316512167
+";
+
+/// This is the example input in the puzzle description.
+const EXAMPLE_INPUT: &str = "
+5483143223
+2745854711
+5264556173
+6141336146
+6357385478
+4167524645
+2176841721
+6882881134
+4846848554
+5283751526
+";
+
+/// Toggle between the two inputs;
+const INPUT: &str = PUZZLE_INPUT;
+
 fn main() {
-    for (i, line) in read_input().into_iter().enumerate() {
-        println!("{i}: \"{line}\"");
-    }
-    println!("10a: {} (123)", solve_10a());
-    println!("10b: {} (456)", solve_10b());
+    println!("INPUT:\n{}", INPUT);
+
+    // println!("11a: {} (123)", solve_11a());
+    // println!("11b: {} (456)", solve_11b());
 }
 
-fn solve_10a() -> usize {
+fn solve_11a() -> usize {
     123
 }
 
-fn solve_10b() -> usize {
+fn solve_11b() -> usize {
     456
-}
-
-/// Read the input file and turn it into an Array2<u8>
-fn read_input() -> Vec<&'static str> {
-    include_str!("../../puzzle_inputs/day_10.txt")
-        .lines()
-        .collect()
 }
