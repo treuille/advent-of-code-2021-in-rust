@@ -1,4 +1,5 @@
 use ndarray::prelude::*;
+use std::mem;
 
 /// This is the puzzle input I got.
 #[allow(dead_code)]
@@ -58,12 +59,17 @@ fn main() {
     println!("step:\n{}", step(x));
 }
 
-fn step(x: Array2<u8>) -> Array2<u8> {
-    let y = &x + 1;
-    println!("{y:?}");
-    let z = y.map(|&elt| elt > 9);
-    println!("{z:?}");
-    y
+fn step(octopi: Array2<u8>) -> Array2<u8> {
+    let mut octopi = octopi + 1;
+    while *octopi.iter().max().unwrap() >= 9 {
+        octopi = Array::from_shape_fn(octopi.raw_dim(), |pt| match octopi[pt] {
+            0 => 0,
+            9 => 0,
+            x => x + (neighbors(&pt, &octopi).filter(|&&x| x >= 9).count() as u8),
+        });
+    }
+    assert!(*octopi.iter().max().unwrap() < 9);
+    octopi
 }
 
 #[allow(dead_code)]
@@ -74,4 +80,16 @@ fn solve_11a() -> usize {
 #[allow(dead_code)]
 fn solve_11b() -> usize {
     456
+}
+
+/// Iterate over the neighboring points to a point in the 2D array.
+fn neighbors<'a, A>(&(i, j): &(usize, usize), grid: &'a Array2<A>) -> impl Iterator<Item = &'a A> {
+    let neighbors_1d = |x: usize| {
+        [x.checked_sub(1), Some(x), x.checked_add(1)]
+            .into_iter()
+            .flatten()
+    };
+    neighbors_1d(i)
+        .zip(neighbors_1d(j))
+        .filter_map(|coord| grid.get(coord))
 }
