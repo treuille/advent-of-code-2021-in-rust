@@ -1,5 +1,5 @@
+use itertools::iproduct;
 use ndarray::prelude::*;
-use std::mem;
 
 /// This is the puzzle input I got.
 #[allow(dead_code)]
@@ -65,7 +65,13 @@ fn step(octopi: Array2<u8>) -> Array2<u8> {
         octopi = Array::from_shape_fn(octopi.raw_dim(), |pt| match octopi[pt] {
             0 => 0,
             9 => 0,
-            x => x + (neighbors(&pt, &octopi).filter(|&&x| x >= 9).count() as u8),
+            x => {
+                let neighbors: Vec<&u8> = neighbors(pt, &octopi).collect();
+                let flashed: Vec<&&u8> = neighbors.iter().filter(|&&&x| x >= 9).collect();
+                let x2: u8 = x + (flashed.len() as u8);
+                println!("{pt:?} -> {x} :: {neighbors:?} -> {flashed:?} -> {x2}");
+                x2
+            }
         });
     }
     assert!(*octopi.iter().max().unwrap() < 9);
@@ -83,13 +89,15 @@ fn solve_11b() -> usize {
 }
 
 /// Iterate over the neighboring points to a point in the 2D array.
-fn neighbors<'a, A>(&(i, j): &(usize, usize), grid: &'a Array2<A>) -> impl Iterator<Item = &'a A> {
+// fn neighbors<'a, A>((i, j): (usize, usize), grid: &'a Array2<A>) -> impl Iterator<Item = &'a A> {
+fn neighbors<A>((i, j): (usize, usize), grid: &Array2<A>) -> impl Iterator<Item = &A> {
     let neighbors_1d = |x: usize| {
         [x.checked_sub(1), Some(x), x.checked_add(1)]
             .into_iter()
             .flatten()
     };
-    neighbors_1d(i)
-        .zip(neighbors_1d(j))
-        .filter_map(|coord| grid.get(coord))
+    iproduct!(neighbors_1d(i), neighbors_1d(j)).filter_map(move |coord| match coord {
+        coord if coord == (i, j) => None,
+        coord => grid.get(coord),
+    })
 }
