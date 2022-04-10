@@ -1,4 +1,5 @@
 use itertools::iproduct;
+use itertools::Itertools;
 use ndarray::prelude::*;
 
 /// This is the puzzle input I got.
@@ -41,14 +42,14 @@ const EXAMPLE_INPUT_2: &str = "
 11111
 ";
 
-/// Toggle between the two inputs;
-const INPUT: &str = EXAMPLE_INPUT_2;
+/// Toggle between the two inputs;String::from(x)));
+const INPUT: &str = PUZZLE_INPUT;
 
 fn main() {
     // Parse the input into an array.
     let input_lines: Vec<&str> = INPUT.trim().lines().collect();
     let shape = (input_lines.len(), input_lines[0].len());
-    let x: Array2<u8> = input_lines
+    let mut x: Array2<u8> = input_lines
         .iter()
         .flat_map(|&line| line.split("").filter_map(|s| s.parse().ok()))
         .collect::<Array1<u8>>()
@@ -56,26 +57,33 @@ fn main() {
         .expect("Array shape mismatch");
     println!("{x:?}");
 
-    println!("step:\n{}", step(x));
+    let mut flashes: usize = 0;
+    for step_no in 1..=100 {
+        let (new_x, new_flashes) = step(x);
+        x = new_x;
+        flashes += new_flashes;
+
+        println!("step {step_no}: ({flashes} flshes)\n{x}");
+        for row in x.rows() {
+            println!("{}", row.map(|&x| x.to_string()).iter().join(""));
+        }
+        println!("---");
+    }
+    println!("puzzle a response: {}", 1681);
 }
 
-fn step(octopi: Array2<u8>) -> Array2<u8> {
+fn step(octopi: Array2<u8>) -> (Array2<u8>, usize) {
     let mut octopi = octopi + 1;
-    while *octopi.iter().max().unwrap() >= 9 {
+    let mut flashes = 0;
+    while *octopi.iter().max().unwrap() > 9 {
+        flashes += octopi.iter().filter(|&&x| x > 9).count();
         octopi = Array::from_shape_fn(octopi.raw_dim(), |pt| match octopi[pt] {
-            0 => 0,
-            9 => 0,
-            x => {
-                let neighbors: Vec<&u8> = neighbors(pt, &octopi).collect();
-                let flashed: Vec<&&u8> = neighbors.iter().filter(|&&&x| x >= 9).collect();
-                let x2: u8 = x + (flashed.len() as u8);
-                println!("{pt:?} -> {x} :: {neighbors:?} -> {flashed:?} -> {x2}");
-                x2
-            }
+            x if x == 0 || x > 9 => 0,
+            x => x + (neighbors(pt, &octopi).filter(|&&x| x > 9).count() as u8),
         });
     }
-    assert!(*octopi.iter().max().unwrap() < 9);
-    octopi
+    assert!(*octopi.iter().max().unwrap() <= 9);
+    (octopi, flashes)
 }
 
 #[allow(dead_code)]
