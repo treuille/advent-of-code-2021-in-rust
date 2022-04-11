@@ -58,8 +58,15 @@ fn main() {
     println!("{x:?}");
 
     let mut flashes: usize = 0;
-    for step_no in 1..=100 {
-        let (new_x, new_flashes) = step(x);
+    // let mut first_all_flash: Option<usize> = None;
+    for step_no in 1..=1000usize {
+        let (new_x, new_flashes, all_flashed) = step(x);
+        if all_flashed {
+            panic!("done: {step_no}");
+            // first_all_flash = first_all_flash.or(Some(step_no));
+        } else {
+            println!("not done: {step_no}");
+        }
         x = new_x;
         flashes += new_flashes;
 
@@ -69,21 +76,31 @@ fn main() {
         }
         println!("---");
     }
-    println!("puzzle a response: {}", 1681);
+    // println!("puzzle a response: {}", 1681);
+    // println!("first_all_flash: {first_all_flash:?}");
 }
 
-fn step(octopi: Array2<u8>) -> (Array2<u8>, usize) {
+fn step(octopi: Array2<u8>) -> (Array2<u8>, usize, bool) {
     let mut octopi = octopi + 1;
     let mut flashes = 0;
+    let mut all_flashed = false;
+    let (w, h) = match octopi.shape() {
+        &[w, h] => (w, h),
+        _ => unreachable!(),
+    };
     while *octopi.iter().max().unwrap() > 9 {
-        flashes += octopi.iter().filter(|&&x| x > 9).count();
+        let new_flashes = octopi.iter().filter(|&&x| x > 9).count();
+        flashes += new_flashes;
         octopi = Array::from_shape_fn(octopi.raw_dim(), |pt| match octopi[pt] {
             x if x == 0 || x > 9 => 0,
             x => x + (neighbors(pt, &octopi).filter(|&&x| x > 9).count() as u8),
         });
     }
+    let n_flashed = octopi.iter().filter(|&&x| x == 0u8).count();
+    println!("n_flashed: {n_flashed}");
+    let all_flashed = n_flashed == w * h;
     assert!(*octopi.iter().max().unwrap() <= 9);
-    (octopi, flashes)
+    (octopi, flashes, all_flashed)
 }
 
 #[allow(dead_code)]
