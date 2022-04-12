@@ -16,9 +16,9 @@ const PUZZLE_INPUT: &str = "
 
 fn main() {
     let octopi: Array2<u8> = read_input(PUZZLE_INPUT);
-    let (soln_a, soln_b) = solve_puzzles(octopi);
-    println!("11a: {:?} (1681)", soln_a);
-    println!("11b: {:?} (276)", soln_b);
+    let (soln_a, soln_b): (usize, usize) = solve_puzzles(octopi);
+    println!("11a: {} (1681)", soln_a);
+    println!("11b: {} (276)", soln_b);
 }
 
 /// Parse the input string into a 2D array.
@@ -41,7 +41,7 @@ fn solve_puzzles(mut octopi: Array2<u8>) -> (usize, usize) {
 
     // Run the simulation until we've answered both puzzles A and B.
     for step_no in 1.. {
-        // Step the simulation.
+        // Step the simulation, processing and counting flahes.
         octopi += 1;
         while *octopi.iter().max().unwrap() > 9 {
             octopi = Array::from_shape_fn(octopi.raw_dim(), |pt| match octopi[pt] {
@@ -49,16 +49,16 @@ fn solve_puzzles(mut octopi: Array2<u8>) -> (usize, usize) {
                 x => x + (neighbors(pt, &octopi).filter(|&&x| x > 9).count() as u8),
             });
         }
-
-        // Puzzle A asks for the number of flashes at step 100.
         let flashes = octopi.iter().filter(|&&x| x == 0).count();
         total_flashes += flashes;
+
+        // Puzzle A asks for the number of flashes at step 100.
         soln_a = soln_a.or_else(|| (step_no == 100).then(|| total_flashes));
 
         // Puzzle B asks when the octopi first all flash simultaneously.
         soln_b = soln_b.or_else(|| (flashes == octopi.len()).then(|| step_no));
 
-        // We can stop when we've solved both puzzles.
+        // Stop when we've solved both puzzles.
         if let (Some(soln_a), Some(soln_b)) = (soln_a, soln_b) {
             return (soln_a, soln_b);
         }
