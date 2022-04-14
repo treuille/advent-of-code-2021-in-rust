@@ -59,18 +59,16 @@ fn solve_10b() -> usize {
 }
 
 /// Read the input file and turn it into an Array2<u8>
-fn read_input(input: &str) -> HashMap<String, HashSet<String>> {
+fn read_input(input: &str) -> HashMap<&str, HashSet<&str>> {
     let re = Regex::new(r"([[:alpha:]]+)-([[:alpha:]]+)").unwrap();
-    let mut puzzle: HashMap<String, HashSet<String>> = HashMap::new();
-    input
-        .lines()
-        .filter_map(|line| {
-            re.captures(line)
-                .map(|caps| (String::from(&caps[1]), String::from(&caps[2])))
-        })
-        .for_each(|(a, b)| {
-            puzzle.entry(a.clone()).or_default().insert(b.clone());
-            puzzle.entry(b.clone()).or_default().insert(a.clone());
-        });
+    let mut puzzle: HashMap<&str, HashSet<&str>> = HashMap::new();
+    for (i, line) in input.trim().lines().enumerate() {
+        println!("- {i} {line}");
+        let caps = re.captures(line).unwrap();
+        let cave_a = caps.get(1).unwrap().as_str();
+        let cave_b = caps.get(2).unwrap().as_str();
+        puzzle.entry(cave_a).or_default().insert(cave_b);
+        puzzle.entry(cave_b).or_default().insert(cave_a);
+    }
     puzzle
 }
