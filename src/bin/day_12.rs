@@ -29,7 +29,7 @@ fn solve_12b(puzzle: &Puzzle) -> usize {
 }
 
 /// The types of caves in the puzzle.
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 enum Cave {
     Start,
     End,
@@ -78,7 +78,7 @@ impl<'a> Explorer<'a> {
 
     fn explore(&mut self, cave: Cave) -> usize {
         let mut paths = 0;
-        for next_cave in self.puzzle.get(&cave.clone()).unwrap().clone() {
+        for next_cave in self.puzzle.get(&cave.clone()).unwrap() {
             match next_cave {
                 Cave::Start => (),
                 Cave::End => paths += 1,
