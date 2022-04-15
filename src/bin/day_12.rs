@@ -37,21 +37,10 @@ enum Cave {
     Big(String),
 }
 
-impl Cave {
-    fn from_str(cave: &str) -> Self {
-        let is_small = |cave: &str| cave.chars().all(|c| ('a'..='z').contains(&c));
-        match cave {
-            "start" => Self::Start,
-            "end" => Self::End,
-            cave if is_small(cave) => Self::Small(cave.to_string()),
-            cave => Self::Big(cave.to_string()),
-        }
-    }
-}
-
 /// The puzzle input is a network of interconnected Caves.
 type Puzzle = HashMap<Cave, HashSet<Cave>>;
 
+/// Stores the state of our exploration.
 struct Explorer<'a> {
     /// The puzzle we're exploring.
     puzzle: &'a Puzzle,
@@ -64,6 +53,18 @@ struct Explorer<'a> {
 
     /// Whether we can visit a small cave twice.
     can_visit_twice: bool,
+}
+
+impl Cave {
+    fn from_str(cave: &str) -> Self {
+        let is_small = |cave: &str| cave.chars().all(|c| ('a'..='z').contains(&c));
+        match cave {
+            "start" => Self::Start,
+            "end" => Self::End,
+            cave if is_small(cave) => Self::Small(cave.to_string()),
+            cave => Self::Big(cave.to_string()),
+        }
+    }
 }
 
 impl<'a> Explorer<'a> {
@@ -84,10 +85,10 @@ impl<'a> Explorer<'a> {
                 Cave::End => paths += 1,
                 Cave::Big(_) => paths += self.explore(next_cave.clone()),
                 Cave::Small(_) => {
-                    if !self.visited.contains(&next_cave) {
+                    if !self.visited.contains(next_cave) {
                         self.visited.insert(next_cave.clone());
                         paths += self.explore(next_cave.clone());
-                        self.visited.remove(&next_cave);
+                        self.visited.remove(next_cave);
                     } else if self.can_visit_twice && self.visited_twice.is_none() {
                         self.visited_twice = Some(next_cave.clone());
                         paths += self.explore(next_cave.clone());
@@ -100,7 +101,6 @@ impl<'a> Explorer<'a> {
     }
 }
 
-#[allow(dead_code)]
 const PUZZLE_INPUT: &str = "
 start-qs
 qs-jz
