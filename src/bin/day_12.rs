@@ -2,7 +2,7 @@ use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
 fn main() {
-    let puzzle = read_input(PUZZLE_INPUT);
+    let puzzle = read_input(include_str!("../../puzzle_inputs/day_12.txt"));
     println!("12a: {} (5178)", solve_12a(&puzzle));
     println!("12b: {} (130094)", solve_12b(&puzzle));
 }
@@ -100,30 +100,3 @@ impl<'a> Explorer<'a> {
         paths
     }
 }
-
-const PUZZLE_INPUT: &str = "
-start-qs
-qs-jz
-start-lm
-qb-QV
-QV-dr
-QV-end
-ni-qb
-VH-jz
-qs-lm
-qb-end
-dr-fu
-jz-lm
-start-VH
-QV-jz
-VH-qs
-lm-dr
-dr-ni
-ni-jz
-lm-QV
-jz-dr
-ni-end
-VH-dr
-VH-ni
-qb-HE
-";
