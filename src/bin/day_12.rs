@@ -1,43 +1,104 @@
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
-type Puzzle<'a> = HashMap<&'a str, HashSet<&'a str>>;
+fn main() {
+    let puzzle = read_input(PUZZLE_INPUT);
+    println!("12a: {} (5178)", solve_12a(&puzzle));
+    println!("12b: {} (130094)", solve_12b(&puzzle));
+}
 
-#[allow(dead_code)]
-const TEST_INPUT_1: &str = "
-dc-end
-HN-start
-start-kj
-dc-start
-dc-HN
-LN-dc
-HN-end
-kj-sa
-kj-HN
-kj-dc
-";
+fn read_input(input: &str) -> Puzzle {
+    let re = Regex::new(r"([[:alpha:]]+)-([[:alpha:]]+)").unwrap();
+    let mut puzzle: Puzzle = Puzzle::new();
+    for line in input.trim().lines() {
+        let caps = re.captures(line).unwrap();
+        let a = Cave::from_str(caps.get(1).unwrap().as_str());
+        let b = Cave::from_str(caps.get(2).unwrap().as_str());
+        puzzle.entry(a.clone()).or_default().insert(b.clone());
+        puzzle.entry(b.clone()).or_default().insert(a.clone());
+    }
+    puzzle
+}
 
-#[allow(dead_code)]
-const TEST_INPUT_2: &str = "
-fs-end
-he-DX
-fs-he
-start-DX
-pj-DX
-end-zg
-zg-sl
-zg-pj
-pj-he
-RW-he
-fs-DX
-pj-RW
-zg-RW
-start-pj
-he-WI
-zg-he
-pj-fs
-start-RW
-";
+fn solve_12a(puzzle: &Puzzle) -> usize {
+    Explorer::new(puzzle, false).explore(Cave::Start)
+}
+
+fn solve_12b(puzzle: &Puzzle) -> usize {
+    Explorer::new(puzzle, true).explore(Cave::Start)
+}
+
+/// The types of caves in the puzzle.
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+enum Cave {
+    Start,
+    End,
+    Small(String),
+    Big(String),
+}
+
+impl Cave {
+    fn from_str(cave: &str) -> Self {
+        let is_small = |cave: &str| cave.chars().all(|c| ('a'..='z').contains(&c));
+        match cave {
+            "start" => Self::Start,
+            "end" => Self::End,
+            cave if is_small(cave) => Self::Small(cave.to_string()),
+            cave => Self::Big(cave.to_string()),
+        }
+    }
+}
+
+/// The puzzle input is a network of interconnected Caves.
+type Puzzle = HashMap<Cave, HashSet<Cave>>;
+
+struct Explorer<'a> {
+    /// The puzzle we're exploring.
+    puzzle: &'a Puzzle,
+
+    /// Which caves we're exploring.
+    visited: HashSet<Cave>,
+
+    /// Whether we've visitd this small cave twice
+    visited_twice: Option<Cave>,
+
+    /// Whether we can visit a small cave twice.
+    can_visit_twice: bool,
+}
+
+impl<'a> Explorer<'a> {
+    fn new(puzzle: &'a Puzzle, can_visit_twice: bool) -> Self {
+        Self {
+            puzzle,
+            visited: HashSet::new(),
+            visited_twice: None,
+            can_visit_twice,
+        }
+    }
+
+    fn explore(&mut self, cave: Cave) -> usize {
+        let mut paths = 0;
+        for next_cave in self.puzzle.get(&cave.clone()).unwrap().clone() {
+            match next_cave {
+                Cave::Start => (),
+                Cave::End => paths += 1,
+                Cave::Big(_) => paths += self.explore(next_cave.clone()),
+                Cave::Small(_) => {
+                    if !self.visited.contains(&next_cave) {
+                        self.visited.insert(next_cave.clone());
+                        paths += self.explore(next_cave.clone());
+                        self.visited.remove(&next_cave);
+                    } else if self.can_visit_twice && self.visited_twice.is_none() {
+                        self.visited_twice = Some(next_cave.clone());
+                        paths += self.explore(next_cave.clone());
+                        self.visited_twice = None;
+                    }
+                }
+            }
+        }
+        paths
+    }
+}
 
 #[allow(dead_code)]
 const PUZZLE_INPUT: &str = "
@@ -66,78 +127,3 @@ VH-dr
 VH-ni
 qb-HE
 ";
-
-fn main() {
-    let puzzle: Puzzle = read_input(PUZZLE_INPUT);
-    println!("puzzle: {puzzle:?}");
-
-    // for (&cave, _) in puzzle.iter() {
-    //     println!("{cave} -> {}", is_small(cave));
-    // }
-    // panic!("done!");
-
-    // let small_caves_visited: HashSet<&str> = ;
-    let paths = explore("start", &mut HashSet::new(), &puzzle);
-    println!("founds {paths} paths.");
-
-    // // println!("10a: {} (123)", solve_10a());
-    // // println!("10b: {} (456)", solve_10b());
-}
-
-fn explore<'a>(
-    cave: &'a str,
-    small_caves_visited: &mut HashSet<&'a str>,
-    puzzle: &Puzzle<'a>,
-) -> usize {
-    // println!("exploring {cave} ({})", small_caves_visited.len());
-    if cave == "end" {
-        return 1;
-    }
-    let is_small: bool = cave.chars().all(|c| ('a'..='z').contains(&c));
-    if is_small {
-        small_caves_visited.insert(cave);
-    }
-    let paths = puzzle
-        .get(cave)
-        .unwrap()
-        .iter()
-        .filter_map(
-            |&next_cave| match &small_caves_visited.contains(next_cave) {
-                false => Some(explore(next_cave, small_caves_visited, puzzle)),
-                true => None,
-            },
-        )
-        .sum();
-    if is_small {
-        small_caves_visited.remove(cave);
-    }
-    paths
-}
-
-// fn is_small(cave: &str) -> bool {
-//     // cave.chars().all(|c| c >= 'a' && c <= 'z')
-//     cave.chars().all(|c| ('a'..='z').contains(&c))
-// }
-
-fn solve_10a() -> usize {
-    123
-}
-
-fn solve_10b() -> usize {
-    456
-}
-
-/// Read the input file and turn it into an Array2<u8>
-fn read_input(input: &str) -> Puzzle {
-    let re = Regex::new(r"([[:alpha:]]+)-([[:alpha:]]+)").unwrap();
-    let mut puzzle: Puzzle = Puzzle::new();
-    for (i, line) in input.trim().lines().enumerate() {
-        println!("- {i} {line}");
-        let caps = re.captures(line).unwrap();
-        let cave_a = caps.get(1).unwrap().as_str();
-        let cave_b = caps.get(2).unwrap().as_str();
-        puzzle.entry(cave_a).or_default().insert(cave_b);
-        puzzle.entry(cave_b).or_default().insert(cave_a);
-    }
-    puzzle
-}
