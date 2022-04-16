@@ -1,9 +1,51 @@
 use itertools::{self, Itertools};
 use std::collections::HashMap;
 
-fn main() {
-    let (polymer, xform) = read_input(include_str!("../../puzzle_inputs/day_14.txt"));
+const TEST_INPUT: &str = "
+NNCB
 
+CH -> B
+HH -> N
+CB -> H
+NH -> C
+HB -> C
+HC -> B
+HN -> C
+NN -> C
+BH -> H
+NC -> B
+NB -> B
+BN -> B
+BB -> N
+BC -> B
+CC -> N
+CN -> C
+";
+
+fn main() {
+    // let (mut polymer, xform) = read_input(include_str!("../../puzzle_inputs/day_14.txt"));
+    let (mut polymer, xform) = read_input(TEST_INPUT);
+    let counts = char_counts(&polymer);
+    println!("counts: {counts:?}");
+
+    // polymer = xform.apply(polymer);
+    // let counts = char_counts(&polymer);
+    // pintln!("counts: {counts:?}");
+
+    for i in 0..10 {
+        // println!("iteration: {i}");
+        // println!("polymer: {polymer:?}");
+        // let counts = char_counts(&polymer);
+        // println!("counts: {counts:?}");
+        // panic!("testing");
+        polymer = xform.apply(polymer);
+    }
+    let counts = char_counts(&polymer);
+    println!("counts: {counts:?}");
+    todo!("finish this thing");
+    let most_common = counts.values().max().unwrap();
+    let least_common = counts.values().min().unwrap();
+    println!("answer: {}", most_common - least_common);
     // for (i, line) in read_input().into_iter().enumerate() {
     //     println!("{i}: \"{line}\"");
     // }
@@ -24,7 +66,8 @@ struct Transform(HashMap<Pair, Vec<(Pair, usize)>>);
 /// Read the input file and turn it into an Array2<u8>
 fn read_input(input: &str) -> (Polymer, Transform) {
     // The input consists of two section: the polymer string, and a list of rules.
-    let (polymer, rules) = input.split_once("\n\n").unwrap();
+    let (polymer, rules) = input.trim().split_once("\n\n").unwrap();
+    println!("polymer: {polymer}");
 
     // Parse the polymer string
     let (mut polymer, pairs) = (Polymer::new(), polymer.chars().tuple_windows());
@@ -55,6 +98,31 @@ fn solve_14b() -> usize {
     456
 }
 
-// impl Transform {
-//     fn apply(&self, polymer: Polymer) -> Polymer {}
-// }
+impl Transform {
+    // TODO: This should be rewritten with for loops
+    fn apply(&self, input: Polymer) -> Polymer {
+        let mut output = Polymer::new();
+        input.iter().for_each(|(pair_1, count_1)| {
+            if let Some(new_pairs) = self.0.get(pair_1) {
+                new_pairs.iter().for_each(|(pair_2, count_2)| {
+                    *output.entry(*pair_2).or_default() += count_1 * count_2
+                });
+            }
+        });
+        output
+    }
+}
+
+/// Returns a hashtable of the count of each character in this polymer.
+fn char_counts(poly: &Polymer) -> HashMap<char, usize> {
+    let mut counts: HashMap<char, usize> = HashMap::new();
+    for (&(char_1, char_2), count) in poly.iter() {
+        *counts.entry(char_1).or_default() += count;
+        *counts.entry(char_2).or_default() += count;
+    }
+
+    counts
+        .drain()
+        .map(|(c, count)| (c, (count + 1) / 2))
+        .collect()
+}
