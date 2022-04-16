@@ -23,34 +23,55 @@ CN -> C
 ";
 
 fn main() {
-    // let (mut polymer, xform) = read_input(include_str!("../../puzzle_inputs/day_14.txt"));
-    let (mut polymer, xform) = read_input(TEST_INPUT);
-    let counts = char_counts(&polymer);
-    println!("counts: {counts:?}");
+    let (mut polymer, xform) = read_input(include_str!("../../puzzle_inputs/day_14.txt"));
+    // let (mut polymer, xform) = read_input(TEST_INPUT);
 
-    // polymer = xform.apply(polymer);
-    // let counts = char_counts(&polymer);
-    // pintln!("counts: {counts:?}");
+    // let ref_counts: Vec<HashMap<char, usize>> = [
+    //     "NNCB",
+    //     "NCNBCHB",
+    //     "NBCCNBBBCBHCB",
+    //     "NBBBCNCCNBBNBNBBCHBHHBCHB",
+    //     "NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB",
+    // ]
+    // .into_iter()
+    // .map(|s| {
+    //     let mut counts = HashMap::new();
+    //     s.chars().for_each(|c| *counts.entry(c).or_default() += 1);
+    //     counts
+    // })
+    // .collect();
+
+    // println!("counts 0 : {:?}", ref_counts[0]);
+    // println!("counts 1 : {:?}", ref_counts[1]);
+    // println!("counts 2 : {:?}", ref_counts[2]);
+    // println!("counts 3 : {:?}", ref_counts[3]);
+    // println!("counts 4 : {:?}", ref_counts[4]);
+    // println!("len : {:?}", ref_counts.len());
 
     for i in 0..10 {
         // println!("iteration: {i}");
+        // if let Some(ref_counts) = ref_counts.get(i) {
+        //     println!("polymer: {polymer:?}");
+        //     assert_eq!(char_counts(&polymer), *ref_counts);
+        // }
+        polymer = xform.apply(polymer);
         // println!("polymer: {polymer:?}");
         // let counts = char_counts(&polymer);
         // println!("counts: {counts:?}");
         // panic!("testing");
-        polymer = xform.apply(polymer);
     }
+
     let counts = char_counts(&polymer);
     println!("counts: {counts:?}");
-    todo!("finish this thing");
+
     let most_common = counts.values().max().unwrap();
     let least_common = counts.values().min().unwrap();
     println!("answer: {}", most_common - least_common);
     // for (i, line) in read_input().into_iter().enumerate() {
     //     println!("{i}: \"{line}\"");
     // }
-    println!("14a: {} (123)", solve_14a());
-    println!("14b: {} (456)", solve_14b());
+    // println!("14a: {} (123)", solve_14a());
+    // println!("14b: {} (456)", solve_14b());
 }
 
 /// A pair is a lenght two string.
@@ -81,7 +102,7 @@ fn read_input(input: &str) -> (Polymer, Transform) {
                 let (from, to) = line.split_once(" -> ").unwrap();
                 let from: Pair = from.chars().tuple_windows().next().unwrap();
                 let to = to.chars().next().unwrap();
-                (from, vec![((from.0, to), 1), ((from.1, to), 1)])
+                (from, vec![((from.0, to), 1), ((to, from.1), 1)])
             })
             .collect(),
     );
@@ -90,13 +111,13 @@ fn read_input(input: &str) -> (Polymer, Transform) {
     (polymer, xform)
 }
 
-fn solve_14a() -> usize {
-    123
-}
+// fn solve_14a() -> usize {
+//     123
+// }
 
-fn solve_14b() -> usize {
-    456
-}
+// fn solve_14b() -> usize {
+//     456
+// }
 
 impl Transform {
     // TODO: This should be rewritten with for loops
