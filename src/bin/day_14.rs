@@ -51,10 +51,9 @@ fn read_input(input: &str) -> (Polymer, Transform) {
 fn apply(xform: &Transform, input: Polymer) -> Polymer {
     let mut output = Polymer::new();
     for (pair, count) in input {
-        if let Some(new_pairs) = xform.get(&pair) {
-            for pair_2 in new_pairs {
-                *output.entry(*pair_2).or_default() += count
-            }
+        if let Some([pair_1, pair_2]) = xform.get(&pair) {
+            *output.entry(*pair_1).or_default() += count;
+            *output.entry(*pair_2).or_default() += count;
         }
     }
     output
