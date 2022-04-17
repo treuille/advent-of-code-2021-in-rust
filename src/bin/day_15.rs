@@ -16,33 +16,56 @@ const TEST_INPUT: &str = "
 fn main() {
     // let input = read_input(TEST_INPUT);
     let input = read_input(include_str!("../../puzzle_inputs/day_15.txt"));
-    let mut costs = Array2::from_elem(input.dim(), 0);
-    for (x, y) in diag_iter(input.dim()) {
-        costs[(x, y)] = [
-            x.checked_sub(1).map(|x| (x, y)),
-            y.checked_sub(1).map(|y| (x, y)),
-        ]
-        .into_iter()
-        .flatten()
-        .map(|coord| costs[coord] + input[coord])
-        .min()
-        .unwrap_or(0);
+    println!("15a: {} (602)", solve_15a(&input));
+    println!("15b: {} (???)", solve_15b(&input));
+}
+
+fn solve_15a(input: &Array2<u32>) -> u32 {
+    find_shortest_path(input)
+}
+
+fn solve_15b(input: &Array2<u32>) -> u32 {
+    let bigger_1 = embiggen(input, 5);
+    let bigger_2 = embiggen_2(input, 5);
+    assert_eq!(bigger_1, bigger_2);
+    find_shortest_path(&bigger_2)
+}
+
+/// Na
+fn embiggen(input: &Array2<u32>, grow_by: usize) -> Array2<u32> {
+    let (w, h) = input.dim();
+    let mut bigger_input = Array2::from_elem((w * grow_by, h * grow_by), 0);
+    for i in 0..grow_by {
+        for j in 0..grow_by {
+            let mut block = input.clone();
+            block -= 1u32;
+            block += (i + j) as u32;
+            block %= 9;
+            block += 1u32;
+            let slice = s![(i * w)..((i + 1) * w), (j * h)..((j + 1) * h)];
+            bigger_input.slice_mut(slice).assign(&block);
+        }
     }
-    println!("input:\n{input}");
-    println!("costs:\n{costs}");
-    let (w, h) = costs.dim();
-    println!("answer: {}", costs[(w - 1, h - 1)]);
-    // for (i, line) in read_input().into_iter().enumerate() {
-    //     println!("{i}: \"{line}\"");
-    // println!("XXb: {} (456)", solve_XXb());
+    bigger_input
 }
 
-fn solve_XXa() -> usize {
-    123
-}
-
-fn solve_XXb() -> usize {
-    456
+fn embiggen_2(input: &Array2<u32>, grow_by: usize) -> Array2<u32> {
+    let (w, h) = input.dim();
+    let mut bigger_input = Array2::from_elem((w * grow_by, h * grow_by), 0);
+    for i in 0..grow_by {
+        for j in 0..grow_by {
+            let mut block = input.clone();
+            block += (i + j) as u32;
+            let slice = s![(i * w)..((i + 1) * w), (j * h)..((j + 1) * h)];
+            bigger_input.slice_mut(slice).assign(&block);
+        }
+    }
+    bigger_input.map_inplace(|x| {
+        if *x >= 10 {
+            *x -= 9;
+        }
+    });
+    bigger_input
 }
 
 /// Read the input file and turn it into an Array2<u32>
@@ -53,6 +76,27 @@ fn read_input(input: &str) -> Array2<u32> {
         Array::from_iter(input.flat_map(|line| line.split("").filter_map(|s| s.parse().ok())));
     let h = array.len() / w;
     array.into_shape((w, h)).unwrap()
+}
+
+fn find_shortest_path(input: &Array2<u32>) -> u32 {
+    let mut costs = Array2::from_elem(input.dim(), 0);
+    for (x, y) in diag_iter(input.dim()).skip(1) {
+        costs[(x, y)] = input[(x, y)]
+            + [
+                x.checked_sub(1).map(|x| (x, y)),
+                y.checked_sub(1).map(|y| (x, y)),
+            ]
+            .into_iter()
+            .flatten()
+            .map(|coord| costs[coord])
+            .min()
+            .unwrap();
+    }
+    println!("input:\n{input}");
+    println!("costs:\n{costs}");
+    let (w, h) = costs.dim();
+    println!("answer: {}", costs[(w - 1, h - 1)]);
+    costs[(w - 1, h - 1)]
 }
 
 /// Iterate in diagonal stripes over the coordinates of a 2D array.
