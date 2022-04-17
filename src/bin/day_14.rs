@@ -48,7 +48,7 @@ fn main() {
     // println!("counts 4 : {:?}", ref_counts[4]);
     // println!("len : {:?}", ref_counts.len());
 
-    for i in 0..10 {
+    for i in 0..40 {
         // println!("iteration: {i}");
         // if let Some(ref_counts) = ref_counts.get(i) {
         //     println!("polymer: {polymer:?}");
