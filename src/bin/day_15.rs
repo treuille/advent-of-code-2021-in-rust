@@ -1,4 +1,6 @@
+use core::cmp::Reverse;
 use ndarray::prelude::*;
+use std::collections::BinaryHeap;
 
 const TEST_INPUT: &str = "
 1163751742
@@ -21,14 +23,14 @@ fn main() {
 }
 
 fn solve_15a(input: &Array2<u32>) -> u32 {
-    find_shortest_path(input)
+    find_shortest_path_2(input)
 }
 
 fn solve_15b(input: &Array2<u32>) -> u32 {
     let bigger_1 = embiggen(input, 5);
-    let bigger_2 = embiggen_2(input, 5);
-    assert_eq!(bigger_1, bigger_2);
-    find_shortest_path(&bigger_2)
+    // let bigger_2 = embiggen_2(input, 5);
+    // assert_eq!(bigger_1, bigger_2);
+    find_shortest_path_2(&bigger_1)
 }
 
 /// Na
@@ -49,26 +51,27 @@ fn embiggen(input: &Array2<u32>, grow_by: usize) -> Array2<u32> {
     bigger_input
 }
 
-fn embiggen_2(input: &Array2<u32>, grow_by: usize) -> Array2<u32> {
-    let (w, h) = input.dim();
-    let mut bigger_input = Array2::from_elem((w * grow_by, h * grow_by), 0);
-    for i in 0..grow_by {
-        for j in 0..grow_by {
-            let mut block = input.clone();
-            block += (i + j) as u32;
-            let slice = s![(i * w)..((i + 1) * w), (j * h)..((j + 1) * h)];
-            bigger_input.slice_mut(slice).assign(&block);
-        }
-    }
-    bigger_input.map_inplace(|x| {
-        if *x >= 10 {
-            *x -= 9;
-        }
-    });
-    bigger_input
-}
+// fn embiggen_2(input: &Array2<u32>, grow_by: usize) -> Array2<u32> {
+//     let (w, h) = input.dim();
+//     let mut bigger_input = Array2::from_elem((w * grow_by, h * grow_by), 0);
+//     for i in 0..grow_by {
+//         for j in 0..grow_by {
+//             let mut block = input.clone();
+//             block += (i + j) as u32;
+//             let slice = s![(i * w)..((i + 1) * w), (j * h)..((j + 1) * h)];
+//             bigger_input.slice_mut(slice).assign(&block);
+//         }
+//     }
+//     bigger_input.map_inplace(|x| {
+//         if *x >= 10 {
+//             *x -= 9;
+//         }
+//     });
+//     bigger_input
+// }
 
 /// Read the input file and turn it into an Array2<u32>
+// TODO; Make these into usizes
 fn read_input(input: &str) -> Array2<u32> {
     let mut input = input.trim().lines().peekable();
     let w = input.peek().unwrap().len();
@@ -76,6 +79,57 @@ fn read_input(input: &str) -> Array2<u32> {
         Array::from_iter(input.flat_map(|line| line.split("").filter_map(|s| s.parse().ok())));
     let h = array.len() / w;
     array.into_shape((w, h)).unwrap()
+}
+
+type Pt = (usize, usize);
+
+/// Iterate over the neighboring points to a point in the 2D array.
+fn neighbors(&(i, j): &Pt, &(w, h): &Pt) -> impl Iterator<Item = Pt> {
+    [
+        (i > 0).then(|| (i - 1, j)),
+        (i < w - 1).then(|| (i + 1, j)),
+        (j > 0).then(|| (i, j - 1)),
+        (j < h - 1).then(|| (i, j + 1)),
+    ]
+    .into_iter()
+    .flatten()
+}
+
+fn find_shortest_path_2(input: &Array2<u32>) -> u32 {
+    let (w, h) = input.dim();
+    let mut costs = Array2::from_elem((w, h), None);
+    let mut heap = BinaryHeap::new();
+    heap.push(Reverse((0, (0, 0))));
+    while let Some(Reverse((cost, pt_1))) = heap.pop() {
+        match costs[pt_1] {
+            Some(smaller_cost) => assert!(smaller_cost <= cost),
+            _ => {
+                costs[pt_1] = Some(cost);
+                for pt_2 in neighbors(&pt_1, &(w, h)) {
+                    heap.push(Reverse((cost + input[pt_2], pt_2)));
+                }
+            }
+        }
+    }
+    costs[(w - 1, h - 1)].unwrap()
+
+    //     for (x, y) in diag_iter(input.dim()).skip(1) {
+    //         costs[(x, y)] = input[(x, y)]
+    //             + [
+    //                 x.checked_sub(1).map(|x| (x, y)),
+    //                 y.checked_sub(1).map(|y| (x, y)),
+    //             ]
+    //             .into_iter()
+    //             .flatten()
+    //             .map(|coord| costs[coord])
+    //             .min()
+    //             .unwrap();
+    //     }
+    //     println!("input:\n{input}");
+    //     println!("costs:\n{costs}");
+    //     let (w, h) = costs.dim();
+    //     println!("answer: {}", costs[(w - 1, h - 1)]);
+    //     costs[(w - 1, h - 1)]
 }
 
 fn find_shortest_path(input: &Array2<u32>) -> u32 {
