@@ -4,28 +4,26 @@ use std::collections::HashMap;
 fn main() {
     let (mut polymer, xform) = read_input(include_str!("../../puzzle_inputs/day_14.txt"));
 
-    for _ in 0..40 {
+    for i in 1..=40 {
         polymer = apply(&xform, polymer);
+        match i {
+            10 => println!("14a: {} (5656)", solution_for(&polymer)),
+            40 => println!("14b: {} (12271437788530)", solution_for(&polymer)),
+            _ => (),
+        }
     }
-
-    let counts = char_counts(&polymer);
-    let most_common = counts.values().max().unwrap();
-    let least_common = counts.values().min().unwrap();
-    let answer = most_common - least_common;
-    assert_eq!(answer, 12271437788530);
-    println!("answer: {}", answer);
 }
 
-/// A pair is a lenght two string.
+/// A pair is a length-2 string.
 type Pair = (char, char);
 
-/// A polymer consists of a counf for a set of length-2 strings.
+/// A polymer is a count of length-2 strings.
 type Polymer = HashMap<Pair, usize>;
 
 /// A transform converts a polymer into another.
-type Transform = HashMap<Pair, Vec<(Pair, usize)>>;
+type Transform = HashMap<Pair, [Pair; 2]>;
 
-/// Read the input file and turn it into an Array2<u8>
+/// Read the input file, returning the initial polymer and the tranformation object.
 fn read_input(input: &str) -> (Polymer, Transform) {
     // The input consists of two section: the polymer string, and a list of rules.
     let (polymer, rules) = input.trim().split_once("\n\n").unwrap();
@@ -41,7 +39,7 @@ fn read_input(input: &str) -> (Polymer, Transform) {
             let (ab, c) = line.split_once(" -> ").unwrap();
             let (a, b): Pair = ab.chars().tuple_windows().next().unwrap();
             let c = c.chars().next().unwrap();
-            ((a, b), vec![((a, c), 1), ((c, b), 1)])
+            ((a, b), [(a, c), (c, b)]) // ab -> ac and cb
         })
         .collect();
 
@@ -49,37 +47,28 @@ fn read_input(input: &str) -> (Polymer, Transform) {
     (polymer, xform)
 }
 
-// fn solve_14a() -> usize {
-//     123
-// }
-
-// fn solve_14b() -> usize {
-//     456
-// }
-
-// TODO: This should be rewritten with for loops
+/// Consumes the polymer, applies the transformation, and returns the result.
 fn apply(xform: &Transform, input: Polymer) -> Polymer {
     let mut output = Polymer::new();
-    for (pair_1, count_1) in input.iter() {
-        if let Some(new_pairs) = xform.get(pair_1) {
-            for (pair_2, count_2) in new_pairs {
-                *output.entry(*pair_2).or_default() += count_1 * count_2
+    for (pair, count) in input {
+        if let Some(new_pairs) = xform.get(&pair) {
+            for pair_2 in new_pairs {
+                *output.entry(*pair_2).or_default() += count
             }
         }
     }
     output
 }
 
-/// Returns a hashtable of the count of each character in this polymer.
-fn char_counts(poly: &Polymer) -> HashMap<char, usize> {
+/// Returns the difference between the most and least common character.
+fn solution_for(poly: &Polymer) -> usize {
     let mut counts: HashMap<char, usize> = HashMap::new();
     for (&(char_1, char_2), count) in poly.iter() {
         *counts.entry(char_1).or_default() += count;
         *counts.entry(char_2).or_default() += count;
     }
 
-    counts
-        .drain()
-        .map(|(c, count)| (c, (count + 1) / 2))
-        .collect()
+    let twice_most_common = counts.values().max().unwrap();
+    let twice_least_common = counts.values().min().unwrap();
+    (twice_most_common - twice_least_common) / 2
 }
