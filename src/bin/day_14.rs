@@ -1,4 +1,4 @@
-use itertools::{self, Itertools};
+use itertools::Itertools;
 use std::collections::HashMap;
 
 fn main() {
