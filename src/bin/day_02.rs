@@ -1,3 +1,6 @@
+use aoc::to_tuple::ToTuple;
+use regex::Regex;
+
 fn main() {
     println!("Puzzle 2a: {:?}", solve_puzzle(advance_a));
     println!("Puzzle 2b: {:?}", solve_puzzle(advance_b));
@@ -9,14 +12,10 @@ fn solve_puzzle<F>(advance: F) -> isize
 where
     F: Fn(State, &str, isize) -> State,
 {
-    let (x, y, _) =
-        include_str!("../../puzzle_inputs/day_02.txt")
-            .lines()
-            .fold((0, 0, 0), |state, line| {
-                let (direction, distance) = line.split_once(" ").unwrap();
-                let distance: isize = distance.parse().unwrap();
-                advance(state, direction, distance)
-            });
+    let re = Regex::new(r"([a-z]+) (\d)").unwrap();
+    let (x, y, _) = re
+        .parse_lines(include_str!("../../puzzle_inputs/day_02.txt"))
+        .fold((0, 0, 0), |state, (dir, dist)| advance(state, dir, dist));
     x * y
 }
 
