@@ -1,21 +1,24 @@
 pub mod parse_regex {
+    use regex::Regex;
     use std::marker::PhantomData;
     use std::str::Lines;
-    use regex::Regex;
 
     pub fn parse_line<'a, T>(re: &Regex, s: &'a str) -> T
-        where T: FromRegex<'a>
+    where
+        T: FromRegex<'a>,
     {
         T::parse(re, s)
     }
 
-    // pub fn parse_lines<'a, T>(re: &'a Regex, s: &'a str) -> ParseLines<'a, Lines<'a>, T>
-    pub fn parse_lines<'a, T>(re: &'a Regex, s: &'a str) -> ParseLines<'a, Lines<'a>, T>
-        where T: FromRegex<'a> ,
+    pub fn parse_lines<'a, T>(re: &'a Regex, s: &'a str) -> ParseLines<'a, T>
+    where
+        T: FromRegex<'a>,
     {
-        let str_iter = s.trim().lines();
-        let _phantom =  PhantomData;
-        ParseLines { re, str_iter, _phantom }
+        ParseLines {
+            re,
+            lines: s.trim().lines(),
+            _phantom: PhantomData,
+        }
     }
 
     pub trait FromStr<'a> {
@@ -98,25 +101,23 @@ pub mod parse_regex {
         }
     }
 
-    pub struct ParseLines<'a, StrIter, T>
+    pub struct ParseLines<'a, T>
     where
-        StrIter: Iterator<Item=&'a str>,
         T: FromRegex<'a>,
     {
         re: &'a Regex,
-        str_iter: StrIter,
+        lines: Lines<'a>,
         _phantom: PhantomData<T>,
     }
 
-    impl<'a, StrIter, T> Iterator for ParseLines<'a, StrIter, T>
+    impl<'a, T> Iterator for ParseLines<'a, T>
     where
-        StrIter: Iterator<Item=&'a str>,
         T: FromRegex<'a>,
     {
         type Item = T;
 
         fn next(&mut self) -> Option<T> {
-            self.str_iter.next().map(|s| T::parse(self.re, s))
+            self.lines.next().map(|line| T::parse(self.re, line))
         }
     }
 }
