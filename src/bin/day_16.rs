@@ -24,7 +24,8 @@ D0E737AE08
 ";
 
 fn main() {
-    let (version_sum, value) = parse_packet(&mut bit_iter(PUZZLE_INPUT));
+    let mut bits = bit_iter(PUZZLE_INPUT);
+    let (version_sum, value) = parse_packet(&mut bits);
     println!("16a: {version_sum} (843)");
     println!("16b: {value} (5390807940351)");
 }
