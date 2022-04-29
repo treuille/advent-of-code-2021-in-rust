@@ -9,6 +9,7 @@ pub mod parse_regex {
         T::parse(re, s)
     }
 
+    // pub fn parse_lines<'a, T>(re: &'a Regex, s: &'a str) -> ParseLines<'a, Lines<'a>, T>
     pub fn parse_lines<'a, T>(re: &'a Regex, s: &'a str) -> ParseLines<'a, Lines<'a>, T>
         where T: FromRegex<'a> ,
     {
@@ -96,21 +97,6 @@ pub mod parse_regex {
             )
         }
     }
-
-    // pub trait ToTuple<'a, Tuple>
-    // where
-    //     Self: Sized,
-    // {
-    //     fn parse_regex(&self, s: &'a str) -> Tuple;
-
-    //     fn parse_lines(&'a self, lines: &'a str) -> LinesToTuples<'a, Tuple, Self> {
-    //         LinesToTuples {
-    //             str_parser: self,
-    //             lines: lines.trim().lines(),
-    //             _phantom: PhantomData,
-    //         }
-    //     }
-    // }
 
     pub struct ParseLines<'a, StrIter, T>
     where
