@@ -5,7 +5,7 @@ fn main() {
     let (goal_x_min, goal_x_max): (isize, isize) = (269, 292);
     let (goal_y_min, goal_y_max): (isize, isize) = (-68, -44);
 
-    // The range of potentially viable start velocities. 
+    // The range of potentially viable start velocities.
     let launch_vels_x = (((goal_x_min * 2) as f64).sqrt() as isize)..=goal_x_max;
     let launch_vels_y = goal_y_min..-goal_y_min;
 
