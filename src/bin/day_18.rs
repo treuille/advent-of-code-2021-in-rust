@@ -1,8 +1,9 @@
+#![allow(dead_code)]
+
 use std::fmt::{Debug, Error, Formatter, Write};
 use std::mem;
 use std::ops::Add;
 
-// use itertools::Itertools;
 const TEST_INPUT: &str = "
 [[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 [[[5,[2,8]],4],[5,[[9,9],0]]]
@@ -30,31 +31,39 @@ const TEST_INPUT_2: &str = "
 ";
 
 fn main() {
-    // let s1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]");
-    // let s2 = SnailfishNumber::new("[1,1]");
+    let s1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]");
+    let s2 = SnailfishNumber::new("[1,1]");
+    let answer = SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
 
-    // let answer = SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
+    println!("\ns1: {s1:?}");
+    println!("s2: {s2:?}");
+    println!("answer 1: {answer:?}\n");
+    assert_eq!(s1 + s2, answer);
 
-    // println!("s1: {s1:?}");
-    // println!("s2: {s2:?}");
+    let s1 = SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]");
+    let s2 = SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]");
+    let answer = SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
 
-    // assert_eq!(s1 + s2, answer);
+    println!("\ns1: {s1:?}");
+    println!("s2: {s2:?}");
+    println!("answer 2: {answer:?}\n");
+    assert_eq!(s1 + s2, answer);
 
     // let s = SnailfishNumber::new("[[9,1],[1,9]]");
     // println!("{s:?} -> {}", s.magnitude());
 
-    // let input = read_input(include_str!("../../puzzle_inputs/day_18.txt"));
-    let mut input = read_input(TEST_INPUT_2.trim()).into_iter();
-    let mut sum = input.next().unwrap();
-    for (i, next) in input.enumerate() {
-        println!("({}) {:?}", i, sum);
-        println!("+ {:?}", next);
-        sum = sum + next;
-        println!("= {:?}\n", sum);
-        if i == 1 {
-            break;
-        }
-    }
+    // // let input = read_input(include_str!("../../puzzle_inputs/day_18.txt"));
+    // let mut input = read_input(TEST_INPUT_2.trim()).into_iter();
+    // let mut sum = input.next().unwrap();
+    // for (i, next) in input.enumerate() {
+    //     println!("({}) {:?}", i, sum);
+    //     println!("+ {:?}", next);
+    //     sum = sum + next;
+    //     println!("= {:?}\n", sum);
+    //     if i == 1 {
+    //         break;
+    //     }
+    // }
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -62,6 +71,19 @@ enum Token {
     Open,
     Close,
     Num(u8),
+}
+
+impl Token {
+    fn is_n(&self) -> bool {
+        matches!(self, Token::Num(_))
+    }
+
+    fn get_n(&self) -> u8 {
+        match *self {
+            Token::Num(n) => n,
+            _ => panic!("Can only get n for Token::Num variant."),
+        }
+    }
 }
 
 impl Debug for Token {
@@ -138,143 +160,73 @@ impl Add for SnailfishNumber {
         let mut tokens1 = vec![Token::Open];
         tokens1.extend(self.0.iter().chain(rhs.0.iter()));
         tokens1.push(Token::Close);
-        // println!("tokens1: {tokens1:?}");
+        println!("tokens1: {:?}", SnailfishNumber(tokens1.clone()));
 
-        #[derive(PartialEq)]
-        enum State {
-            /// Sweep, looking for reductions.
-            InitialSweep { depth: u8, last_num: Option<usize> },
-
-            /// Explode the next number we find to the left.
-            Explode0 { last_num: Option<usize> },
-
-            /// Find the number to explode to the right
-            Explode1,
-
-            /// Find the closeing paren the explosion.
-            Explode2 { found: u8 },
-
-            /// Explode the number we found to the right.
-            Explode3 { found: u8 },
-
-            /// Copy everything over from now on.
-            Copy,
-        }
-
-        // Perform a sequence of reductions on the number.
-        #[allow(unused_mut)]
+        // This is where we write the output
         let mut tokens2 = Vec::with_capacity(tokens1.len());
-        #[allow(clippy::never_loop)]
+
         loop {
-            let initial_state = State::InitialSweep {
-                depth: 0,
-                last_num: None,
-            };
-            let final_state =
-                tokens1
-                    .drain(..)
-                    .fold(initial_state, |state, token| match (state, token) {
-                        (State::Copy, token) => {
-                            // println!("Copy {token:?}");
-                            tokens2.push(token);
-                            State::Copy
-                        }
+            let mut last_num = None;
+            let mut explode_right = None;
+            let mut depth = 0;
 
-                        (State::Explode3 { found }, Token::Num(n)) => {
-                            // println!("Explode right {n}");
-                            tokens2.push(Token::Num(n + found));
-                            State::Copy
-                        }
+            let mut indexed_tokens = tokens1.drain(..).enumerate().peekable();
+            while let Some((indx, token)) = indexed_tokens.next() {
+                // println!("indx: {indx:?}");
+                // println!("processing: '{:?}'", token);
+                // println!("last_num: {last_num:?}");
+                // println!("explode_right: {explode_right:?}");
+                // println!("depth: {depth:?}\n");
 
-                        (State::Explode3 { found }, token) => {
-                            // println!("Explode right {token:?}");
-                            tokens2.push(token);
-                            State::Explode3 { found }
-                        }
-
-                        (State::Explode2 { found }, Token::Close) => {
-                            // println!("Explode2 with close");
-                            State::Explode3 { found }
-                        }
-
-                        (State::Explode2 { found }, token) => {
-                            panic!("Malformed Explode2 found={found} {token:?}");
-                        }
-
-                        (State::Explode1, Token::Num(n)) => {
-                            // println!("Explode1 {n}");
-                            // if let Some(Token::Num(last_n)) = tokens2.last() {
-                            //     *tokens2.last_mut().unwrap() = Token::Num(last_n + n);
-                            // }
-                            // tokens2.push(Token::Num(0));
-                            tokens2.push(Token::Num(0));
-                            State::Explode2 { found: n }
-                            // State::Explode1
-                        }
-
-                        (State::Explode1, _) => panic!("Malformed Explode0"),
-
-                        (State::Explode0 { last_num }, Token::Num(n)) => {
-                            // println!("Exploding left {n}");
-                            if let Some(last_num_index) = last_num {
-                                tokens2[last_num_index] = match tokens2[last_num_index] {
-                                    Token::Num(last_n) => Token::Num(last_n + n),
-                                    _ => panic!("Expected a Token::Num"),
-                                }
-                            }
-                            State::Explode1
-                        }
-
-                        (State::Explode0 { last_num: _ }, _) => panic!("Malformed Explode0"),
-
-                        (State::InitialSweep { depth: 4, last_num }, Token::Open) => {
-                            // println!("Depth 4 with Open");
-                            State::Explode0 { last_num }
-                        }
-
-                        (State::InitialSweep { depth, last_num }, Token::Open) => {
-                            // println!("{token:?} depth={}", depth);
-                            tokens2.push(Token::Open);
-                            State::InitialSweep {
-                                depth: depth + 1,
-                                last_num,
-                            }
-                        }
-
-                        (State::InitialSweep { depth, last_num }, Token::Close) => {
-                            // println!("{token:?} depth={}", depth);
-                            tokens2.push(Token::Close);
-                            State::InitialSweep {
-                                depth: depth - 1,
-                                last_num,
-                            }
-                        }
-
-                        (State::InitialSweep { .. }, Token::Num(n)) if n > 9 => {
-                            // println!("Found a big number {n}");
+                match token {
+                    Token::Open => {
+                        depth += 1;
+                        tokens2.push(Token::Open);
+                    }
+                    Token::Close => {
+                        depth -= 1;
+                        tokens2.push(Token::Close);
+                    }
+                    Token::Num(n) => {
+                        if n >= 10 {
                             tokens2.push(Token::Open);
                             tokens2.push(Token::Num(n / 2));
                             tokens2.push(Token::Num((n + 1) / 2));
                             tokens2.push(Token::Close);
-                            State::Copy
-                        }
-
-                        (State::InitialSweep { depth, last_num: _ }, Token::Num(n)) => {
-                            // println!("Need to implement for {n}");
-                            tokens2.push(Token::Num(n));
-                            State::InitialSweep {
-                                depth,
-                                last_num: Some(tokens2.len() - 1),
+                            break;
+                        } else if let Some(last_n) = explode_right {
+                            tokens2.push(Token::Num(n + last_n));
+                            break;
+                        } else if depth >= 5 && indexed_tokens.peek().unwrap().1.is_n() {
+                            if let Some((last_indx, last_n)) = last_num {
+                                tokens2[last_indx] = Token::Num(n + last_n);
                             }
+                            let next_n = indexed_tokens.next().unwrap().1.get_n();
+                            explode_right = Some(next_n);
+                            // println!("about to explode_right: {:?}", explode_right);
+                            let next_token = indexed_tokens.next().unwrap().1;
+                            // println!("next_token: {next_token:?}");
+                            assert_eq!(next_token, Token::Close); // skip ]
+                            tokens2.pop();
+                            tokens2.push(Token::Num(0));
+                            depth -= 1;
+                        } else {
+                            assert!(depth <= 5);
+                            last_num = Some((indx, n));
+                            tokens2.push(token);
                         }
-                    });
-            // println!("tokens2: {tokens2:?}");
-            match final_state {
-                State::InitialSweep { .. } => break,
-                _ => mem::swap(&mut tokens1, &mut tokens2),
+                    }
+                }
+            }
+            if indexed_tokens.peek().is_some() {
+                tokens2.extend(indexed_tokens.map(|(_, token)| token));
+                println!("tokens2: {:?}", SnailfishNumber(tokens2.clone()));
+                mem::swap(&mut tokens1, &mut tokens2);
+            } else {
+                break;
             }
         }
-        // All done.
+        println!("tokens2: {:?}", SnailfishNumber(tokens2.clone()));
         Self(tokens2)
     }
 }
@@ -291,3 +243,137 @@ impl Add for SnailfishNumber {
 fn read_input(input: &str) -> Vec<SnailfishNumber> {
     input.lines().map(SnailfishNumber::new).collect()
 }
+//
+// #[derive(PartialEq)]
+// enum State {
+//     /// Sweep, looking for reductions.
+//     InitialSweep { depth: u8, last_num: Option<usize> },
+
+//     /// Explode the next number we find to the left.
+//     Explode0 { last_num: Option<usize> },
+
+//     /// Find the number to explode to the right
+//     Explode1,
+
+//     /// Find the closeing paren the explosion.
+//     Explode2 { found: u8 },
+
+//     /// Explode the number we found to the right.
+//     Explode3 { found: u8 },
+
+//     /// Copy everything over from now on.
+//     Copy,
+// }
+
+// // Perform a sequence of reductions on the number.
+// loop {
+//     let initial_state = State::InitialSweep {
+//         depth: 0,
+//         last_num: None,
+//     };
+//     let final_state =
+//         tokens1
+//             .drain(..)
+//             .fold(initial_state, |state, token| match (state, token) {
+//                 (State::Copy, token) => {
+//                     // println!("Copy {token:?}");
+//                     tokens2.push(token);
+//                     State::Copy
+//                 }
+
+//                 (State::Explode3 { found }, Token::Num(n)) => {
+//                     // println!("Explode right {n}");
+//                     tokens2.push(Token::Num(n + found));
+//                     State::Copy
+//                 }
+
+//                 (State::Explode3 { found }, token) => {
+//                     // println!("Explode right {token:?}");
+//                     tokens2.push(token);
+//                     State::Explode3 { found }
+//                 }
+
+//                 (State::Explode2 { found }, Token::Close) => {
+//                     // println!("Explode2 with close");
+//                     State::Explode3 { found }
+//                 }
+
+//                 (State::Explode2 { found }, token) => {
+//                     panic!("Malformed Explode2 found={found} {token:?}");
+//                 }
+
+//                 (State::Explode1, Token::Num(n)) => {
+//                     // println!("Explode1 {n}");
+//                     // if let Some(Token::Num(last_n)) = tokens2.last() {
+//                     //     *tokens2.last_mut().unwrap() = Token::Num(last_n + n);
+//                     // }
+//                     // tokens2.push(Token::Num(0));
+//                     tokens2.push(Token::Num(0));
+//                     State::Explode2 { found: n }
+//                     // State::Explode1
+//                 }
+
+//                 (State::Explode1, _) => panic!("Malformed Explode0"),
+
+//                 (State::Explode0 { last_num }, Token::Num(n)) => {
+//                     // println!("Exploding left {n}");
+//                     if let Some(last_num_index) = last_num {
+//                         tokens2[last_num_index] = match tokens2[last_num_index] {
+//                             Token::Num(last_n) => Token::Num(last_n + n),
+//                             _ => panic!("Expected a Token::Num"),
+//                         }
+//                     }
+//                     State::Explode1
+//                 }
+
+//                 (State::Explode0 { last_num: _ }, _) => panic!("Malformed Explode0"),
+
+//                 (State::InitialSweep { depth: 4, last_num }, Token::Open) => {
+//                     // println!("Depth 4 with Open");
+//                     State::Explode0 { last_num }
+//                 }
+
+//                 (State::InitialSweep { depth, last_num }, Token::Open) => {
+//                     // println!("{token:?} depth={}", depth);
+//                     tokens2.push(Token::Open);
+//                     State::InitialSweep {
+//                         depth: depth + 1,
+//                         last_num,
+//                     }
+//                 }
+
+//                 (State::InitialSweep { depth, last_num }, Token::Close) => {
+//                     // println!("{token:?} depth={}", depth);
+//                     tokens2.push(Token::Close);
+//                     State::InitialSweep {
+//                         depth: depth - 1,
+//                         last_num,
+//                     }
+//                 }
+
+//                 (State::InitialSweep { .. }, Token::Num(n)) if n > 9 => {
+//                     // println!("Found a big number {n}");
+//                     tokens2.push(Token::Open);
+//                     tokens2.push(Token::Num(n / 2));
+//                     tokens2.push(Token::Num((n + 1) / 2));
+//                     tokens2.push(Token::Close);
+//                     State::Copy
+//                 }
+
+//                 (State::InitialSweep { depth, last_num: _ }, Token::Num(n)) => {
+//                     // println!("Need to implement for {n}");
+//                     tokens2.push(Token::Num(n));
+//                     State::InitialSweep {
+//                         depth,
+//                         last_num: Some(tokens2.len() - 1),
+//                     }
+//                 }
+//             });
+//     // println!("tokens2: {tokens2:?}");
+//     match final_state {
+//         State::InitialSweep { .. } => break,
+//         _ => mem::swap(&mut tokens1, &mut tokens2),
+//     }
+// }
+// // All done.
+// Self(tokens2)
