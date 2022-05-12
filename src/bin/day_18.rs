@@ -186,7 +186,9 @@ impl Add for SnailfishNumber {
         let mut tokens1 = vec![Token::Open];
         tokens1.extend(self.0.iter().chain(rhs.0.iter()));
         tokens1.push(Token::Close);
-        println!("tokens1: {:?}", SnailfishNumber(tokens1.clone()));
+
+        let num_1 = SnailfishNumber(tokens1.clone());
+        println!("tokens1: {num_1:?} ({})", num_1.max_depth());
 
         // This is where we write the output
         let mut tokens2 = Vec::with_capacity(tokens1.len());
