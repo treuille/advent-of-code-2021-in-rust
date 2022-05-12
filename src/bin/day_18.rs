@@ -165,6 +165,10 @@ impl Add for SnailfishNumber {
         // This is where we write the output
         let mut tokens2 = Vec::with_capacity(tokens1.len());
 
+        // TODO:
+        // 1. Make sure that depth <= 5.
+        // 2. Change it to tuple_windows() and remove the peek thing.
+        // 3. Don't check for 10 first (check for explode_right).
         loop {
             let mut last_num = None;
             let mut explode_right = None;
