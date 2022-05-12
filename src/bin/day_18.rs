@@ -83,14 +83,10 @@ impl Debug for SnailfishNumber {
         for token in &self.0 {
             match (last_bracket, token) {
                 (Token::Open, Token::Open) => f.write_char('[')?,
-                (Token::Close, Token::Open) => f.write_fmt(format_args!(",["))?,
-                (Token::Num(_), Token::Open) => f.write_fmt(format_args!(",["))?,
-                (Token::Open, Token::Close) => panic!("Unexpected ]."),
-                (Token::Close, Token::Close) => f.write_char(']')?,
-                (Token::Num(_), Token::Close) => f.write_char(']')?,
+                (_, Token::Open) => f.write_fmt(format_args!(",["))?,
+                (_, Token::Close) => f.write_char(']')?,
                 (Token::Open, Token::Num(n)) => f.write_fmt(format_args!("{}", n))?,
-                (Token::Close, Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
-                (Token::Num(_), Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
+                (_, Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
             }
             last_bracket = *token;
         }
