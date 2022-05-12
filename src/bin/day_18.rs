@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use itertools::Itertools;
 use std::fmt::{Debug, Error, Formatter, Write};
 use std::mem;
 use std::ops::Add;
@@ -35,18 +36,22 @@ fn main() {
     let s2 = SnailfishNumber::new("[1,1]");
     let answer = SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
 
-    println!("\ns1: {s1:?}");
-    println!("s2: {s2:?}");
-    println!("answer 1: {answer:?}\n");
+    println!("\ns1: {s1:?} ({})", s1.max_depth());
+    println!("s2: {s2:?} ({})", s2.max_depth());
+    println!("answer 2: {answer:?} ({})\n", answer.max_depth());
     assert_eq!(s1 + s2, answer);
+    // println!("\ns1: {s1:?}");
+    // println!("s2: {s2:?}");
+    // println!("answer 1: {answer:?}\n");
+    // assert_eq!(s1 + s2, answer);
 
     let s1 = SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]");
     let s2 = SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]");
     let answer = SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
 
-    println!("\ns1: {s1:?}");
-    println!("s2: {s2:?}");
-    println!("answer 2: {answer:?}\n");
+    println!("\ns1: {s1:?} ({})", s1.max_depth());
+    println!("s2: {s2:?} ({})", s2.max_depth());
+    println!("answer 2: {answer:?} ({})\n", answer.max_depth());
     assert_eq!(s1 + s2, answer);
 
     // let s = SnailfishNumber::new("[[9,1],[1,9]]");
@@ -149,6 +154,27 @@ impl SnailfishNumber {
         assert!(magnitudes.len() == 1, "Malformed token sequence.");
         *magnitudes.last().unwrap()
     }
+
+    fn max_depth(&self) -> u8 {
+        let mut depth = 0;
+        let mut max_depth = 0;
+        for (i, token) in self.0.iter().enumerate() {
+            match token {
+                Token::Open => {
+                    depth += 1;
+                    max_depth = u8::max(depth, max_depth);
+                    assert!(depth <= 5, "There is a depth of {depth} at {i}.");
+                }
+                Token::Close => {
+                    assert!(depth > 0);
+                    depth -= 1;
+                }
+                Token::Num(_) => (),
+            }
+        }
+        assert_eq!(depth, 0);
+        max_depth
+    }
 }
 
 impl Add for SnailfishNumber {
@@ -166,25 +192,26 @@ impl Add for SnailfishNumber {
         let mut tokens2 = Vec::with_capacity(tokens1.len());
 
         // TODO:
-        // 1. Make sure that depth <= 5.
         // 2. Change it to tuple_windows() and remove the peek thing.
         // 3. Don't check for 10 first (check for explode_right).
         loop {
+            let mut depth = u8::MIN;
             let mut last_num = None;
             let mut explode_right = None;
-            let mut depth = 0;
+            let mut performed_reduction = false;
 
-            let mut indexed_tokens = tokens1.drain(..).enumerate().peekable();
-            while let Some((indx, token)) = indexed_tokens.next() {
+            let mut indexed_tokens = tokens1.drain(..).tuple_windows().enumerate();
+            while let Some((indx, (t1, t2))) = indexed_tokens.next() {
                 // println!("indx: {indx:?}");
                 // println!("processing: '{:?}'", token);
                 // println!("last_num: {last_num:?}");
                 // println!("explode_right: {explode_right:?}");
                 // println!("depth: {depth:?}\n");
 
-                match token {
+                match t1 {
                     Token::Open => {
                         depth += 1;
+                        assert!(depth <= 5, "Depth cannot exceed 5.");
                         tokens2.push(Token::Open);
                     }
                     Token::Close => {
@@ -192,45 +219,58 @@ impl Add for SnailfishNumber {
                         tokens2.push(Token::Close);
                     }
                     Token::Num(n) => {
-                        if n >= 10 {
+                        if let Some(last_n) = explode_right {
+                            tokens2.push(Token::Num(n + last_n));
+                            performed_reduction = true;
+                            break;
+                        } else if n >= 10 {
                             tokens2.push(Token::Open);
                             tokens2.push(Token::Num(n / 2));
                             tokens2.push(Token::Num((n + 1) / 2));
                             tokens2.push(Token::Close);
+                            performed_reduction = true;
                             break;
-                        } else if let Some(last_n) = explode_right {
-                            tokens2.push(Token::Num(n + last_n));
-                            break;
-                        } else if depth >= 5 && indexed_tokens.peek().unwrap().1.is_n() {
+                        } else if depth == 5 && t2.is_n() {
                             if let Some((last_indx, last_n)) = last_num {
                                 tokens2[last_indx] = Token::Num(n + last_n);
                             }
-                            let next_n = indexed_tokens.next().unwrap().1.get_n();
+                            let next_n = t2.get_n();
                             explode_right = Some(next_n);
                             // println!("about to explode_right: {:?}", explode_right);
-                            let next_token = indexed_tokens.next().unwrap().1;
-                            // println!("next_token: {next_token:?}");
-                            assert_eq!(next_token, Token::Close); // skip ]
+                            assert!(matches!(
+                                indexed_tokens.next(),
+                                Some((_, (Token::Num(_), Token::Close)))
+                            )); // skip ]
+                            assert!(matches!(
+                                indexed_tokens.next(),
+                                Some((_, (Token::Close, _)))
+                            )); // skip ]
                             tokens2.pop();
                             tokens2.push(Token::Num(0));
                             depth -= 1;
                         } else {
                             assert!(depth <= 5);
                             last_num = Some((indx, n));
-                            tokens2.push(token);
+                            tokens2.push(t1);
                         }
                     }
                 }
             }
-            if indexed_tokens.peek().is_some() {
-                tokens2.extend(indexed_tokens.map(|(_, token)| token));
-                println!("tokens2: {:?}", SnailfishNumber(tokens2.clone()));
+            if performed_reduction {
+                println!("performed_reduction=true");
+                tokens2.extend(indexed_tokens.map(|(_, (t1, _))| t1));
+                tokens2.push(Token::Close);
+                let snail_num_2 = SnailfishNumber(tokens2.clone());
+                println!("tokens2: {:?} ({})", snail_num_2, snail_num_2.max_depth());
                 mem::swap(&mut tokens1, &mut tokens2);
             } else {
+                println!("performed_reduction=false");
+                tokens2.push(Token::Close);
                 break;
             }
         }
-        println!("tokens2: {:?}", SnailfishNumber(tokens2.clone()));
+        let snail_num_2 = SnailfishNumber(tokens2.clone());
+        println!("tokens2: {:?} ({})", snail_num_2, snail_num_2.max_depth());
         Self(tokens2)
     }
 }
