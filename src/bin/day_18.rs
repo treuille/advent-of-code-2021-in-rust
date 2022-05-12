@@ -64,38 +64,35 @@ enum Token {
     Num(u8),
 }
 
-// impl Debug for Token {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-//         match self {
-//             Token::Open => f.write_char('{'),
-//             Token::Close => f.write_char('}'),
-//             Token::Num(n) => f.write_fmt(format_args!("{}", n)),
-//         }
-//     }
-// }
+impl Debug for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        match self {
+            Token::Open => f.write_char('{'),
+            Token::Close => f.write_char('}'),
+            Token::Num(n) => f.write_fmt(format_args!("{}", n)),
+        }
+    }
+}
 
 #[derive(PartialEq)]
 struct SnailfishNumber(Vec<Token>);
 
 impl Debug for SnailfishNumber {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        let mut last_bracket = None;
+        let mut last_bracket = Token::Open;
         for token in &self.0 {
             match (last_bracket, token) {
-                (None, Token::Open) => f.write_char('[')?,
-                (None, Token::Close) => f.write_char(']')?,
-                (None, Token::Num(_)) => panic!("Unexpected num token."),
-                (Some(Token::Open), Token::Open) => f.write_char('[')?,
-                (Some(Token::Close), Token::Open) => f.write_fmt(format_args!(",["))?,
-                (Some(Token::Num(_)), Token::Open) => f.write_fmt(format_args!(",["))?,
-                (Some(Token::Open), Token::Close) => panic!("Unexpected ]."),
-                (Some(Token::Close), Token::Close) => f.write_char(']')?,
-                (Some(Token::Num(_)), Token::Close) => f.write_fmt(format_args!("]"))?,
-                (Some(Token::Open), Token::Num(n)) => f.write_fmt(format_args!("{}", n))?,
-                (Some(Token::Close), Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
-                (Some(Token::Num(_)), Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
+                (Token::Open, Token::Open) => f.write_char('[')?,
+                (Token::Close, Token::Open) => f.write_fmt(format_args!(",["))?,
+                (Token::Num(_), Token::Open) => f.write_fmt(format_args!(",["))?,
+                (Token::Open, Token::Close) => panic!("Unexpected ]."),
+                (Token::Close, Token::Close) => f.write_char(']')?,
+                (Token::Num(_), Token::Close) => f.write_char(']')?,
+                (Token::Open, Token::Num(n)) => f.write_fmt(format_args!("{}", n))?,
+                (Token::Close, Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
+                (Token::Num(_), Token::Num(n)) => f.write_fmt(format_args!(",{}", n))?,
             }
-            last_bracket = Some(*token);
+            last_bracket = *token;
         }
         Ok(())
     }
