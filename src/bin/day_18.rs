@@ -32,30 +32,29 @@ const TEST_INPUT_2: &str = "
 ";
 
 fn main() {
-    let s1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]");
-    let s2 = SnailfishNumber::new("[1,1]");
-    let answer = SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
+    // final_summation_example();
+    big_summation_example();
 
-    println!("\ns1: {s1:?} ({})", s1.max_depth());
-    println!("s2: {s2:?} ({})", s2.max_depth());
-    println!("answer 2: {answer:?} ({})\n", answer.max_depth());
-    assert_eq!(s1 + s2, answer);
-    // println!("\ns1: {s1:?}");
-    // println!("s2: {s2:?}");
-    // println!("answer 1: {answer:?}\n");
+    // let s1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]");
+    // let s2 = SnailfishNumber::new("[1,1]");
+    // let answer = SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
+
+    // println!("\ns1: {s1:?} ({})", s1.max_depth());
+    // println!("s2: {s2:?} ({})", s2.max_depth());
+    // println!("answer 2: {answer:?} ({})\n", answer.max_depth());
     // assert_eq!(s1 + s2, answer);
 
-    let s1 = SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]");
-    let s2 = SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]");
-    let answer = SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
+    // let s1 = SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]");
+    // let s2 = SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]");
+    // let answer = SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
 
-    println!("\ns1: {s1:?} ({})", s1.max_depth());
-    println!("s2: {s2:?} ({})", s2.max_depth());
+    // println!("\ns1: {s1:?} ({})", s1.max_depth());
+    // println!("s2: {s2:?} ({})", s2.max_depth());
 
-    println!("answer 2: {answer:?} ({})\n", answer.max_depth());
-    let sum = s1 + s2;
-    println!("sum: {sum:?} ({})\n", sum.max_depth());
-    assert_eq!(sum, answer);
+    // println!("answer 2: {answer:?} ({})\n", answer.max_depth());
+    // let sum = s1 + s2;
+    // println!("sum: {sum:?} ({})\n", sum.max_depth());
+    // assert_eq!(sum, answer);
 
     // let s = SnailfishNumber::new("[[9,1],[1,9]]");
     // println!("{s:?} -> {}", s.magnitude());
@@ -72,6 +71,115 @@ fn main() {
     //         break;
     //     }
     // }
+}
+
+fn test_reductions() {
+    let examples = [
+        (
+            SnailfishNumber::new("[[[[[9,8],1],2],3],4]"),
+            SnailfishNumber::new("[[[[0,9],2],3],4]"),
+        ),
+        (
+            SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]"),
+            SnailfishNumber::new("[7,[6,[5,[7,0]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]"),
+            SnailfishNumber::new("[[6,[5,[7,0]]],3]"),
+        ),
+        (
+            SnailfishNumber::new("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"),
+            SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
+            // SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
+            SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"),
+            SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"),
+        ),
+    ];
+    for (s1, s2) in examples {
+        // println!("s1: {:?}", s1);
+        println!("s1a: {:?}", s1);
+        println!("s2a: {:?}", s2);
+        let s1 = s1.reduce();
+        println!("s1b: {:?}", s1);
+        println!("s2b: {:?}", s2);
+        assert_eq!(s1, s2);
+        println!();
+    }
+}
+
+fn final_summation_example() {
+    let mut sum = SnailfishNumber::new("[1,1]");
+    for i in 2..=6 {
+        let rhs = SnailfishNumber::new(format!("[{i},{i}]").as_str());
+        println!("rhs: {:?}", rhs);
+        sum = sum + rhs;
+        println!("sum: {:?}", sum);
+    }
+}
+
+fn big_summation_example() {
+    let examples = [
+        (
+            SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]"),
+            SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]"),
+            SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
+            SnailfishNumber::new("[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]"),
+            SnailfishNumber::new("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
+            SnailfishNumber::new("[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]"),
+            SnailfishNumber::new("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
+            SnailfishNumber::new("[7,[5,[[3,8],[1,4]]]]"),
+            SnailfishNumber::new("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
+            SnailfishNumber::new("[[2,[2,2]],[8,[8,1]]]"),
+            SnailfishNumber::new("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"),
+            SnailfishNumber::new("[2,9]"),
+            SnailfishNumber::new("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"),
+            SnailfishNumber::new("[1,[[[9,3],9],[[9,0],[0,7]]]]"),
+            SnailfishNumber::new("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"),
+            SnailfishNumber::new("[[[5,[7,4]],7],1]"),
+            SnailfishNumber::new("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"),
+        ),
+        (
+            SnailfishNumber::new("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"),
+            SnailfishNumber::new("[[[[4,2],2],6],[8,7]]"),
+            SnailfishNumber::new("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"),
+        ),
+    ];
+
+    for (lhs, rhs, sum) in examples.into_iter().skip(1) {
+        let my_sum = lhs.clone() + rhs.clone();
+        println!("lhs: {lhs:?}");
+        println!("rhs: {rhs:?}");
+        println!("my_sum: {my_sum:?}");
+        println!("sum: {sum:?}");
+        break;
+    }
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -104,7 +212,7 @@ impl Debug for Token {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 struct SnailfishNumber(Vec<Token>);
 
 impl Debug for SnailfishNumber {
@@ -183,17 +291,10 @@ impl SnailfishNumber {
         assert_eq!(depth, 0);
         max_depth
     }
-}
 
-impl Add for SnailfishNumber {
-    /// The resulting type after applying the `+` operator.
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
+    fn reduce(self) -> Self {
         // Concatenate both tokens.
-        let mut tokens1 = vec![Token::Open];
-        tokens1.extend(self.0.iter().chain(rhs.0.iter()));
-        tokens1.push(Token::Close);
+        let mut tokens1 = self.0;
 
         let num_1 = SnailfishNumber(tokens1.clone());
         println!("tokens1: {num_1:?} ({})", num_1.max_depth());
@@ -201,17 +302,14 @@ impl Add for SnailfishNumber {
         // This is where we write the output
         let mut tokens2 = Vec::with_capacity(tokens1.len());
 
-        // TODO:
-        // 2. Change it to tuple_windows() and remove the peek thing.
-        // 3. Don't check for 10 first (check for explode_right).
         loop {
-            let mut depth = u8::MIN;
+            let mut depth = 0u8;
             let mut last_num = None;
             let mut explode_right = None;
             let mut performed_reduction = false;
 
-            let mut indexed_tokens = tokens1.drain(..).tuple_windows();
-            while let Some((t1, t2)) = indexed_tokens.next() {
+            let mut token_pairs = tokens1.drain(..).tuple_windows();
+            while let Some((t1, t2)) = token_pairs.next() {
                 // println!("indx: {indx:?}");
                 // println!("processing: '{:?}'", token);
                 // println!("last_num: {last_num:?}");
@@ -229,9 +327,9 @@ impl Add for SnailfishNumber {
                         tokens2.push(Token::Close);
                     }
                     Token::Num(n) => {
-                        if n == 19 {
-                            println!("Found a 19!!!");
-                        }
+                        // if n == 19 {
+                        //     println!("Found a 19!!!");
+                        // }
                         if let Some(last_n) = explode_right {
                             tokens2.push(Token::Num(n + last_n));
                             break;
@@ -242,24 +340,31 @@ impl Add for SnailfishNumber {
                             }
                             let next_n = t2.get_n();
                             explode_right = Some(next_n);
-                            // println!("about to explode_right: {:?}", explode_right);
+
                             assert_eq!(
-                                indexed_tokens.next(),
+                                token_pairs.next(),
                                 Some((Token::Num(next_n), Token::Close))
                             ); // skip the next num
-                            assert!(matches!(indexed_tokens.next(), Some((Token::Close, _)))); // skip ]
+
+                            assert!(matches!(token_pairs.next(), Some((Token::Close, _)))); // skip ]
+
                             tokens2.pop();
                             tokens2.push(Token::Num(0));
                             depth -= 1;
+                        } else if depth > 5 {
+                            panic!("Depth too high: {depth}");
                         } else if n >= 10 {
                             performed_reduction = true;
+
                             tokens2.push(Token::Open);
                             tokens2.push(Token::Num(n / 2));
                             tokens2.push(Token::Num((n + 1) / 2));
                             tokens2.push(Token::Close);
+
                             break;
                         } else {
                             assert!(depth <= 5);
+
                             let indx = tokens2.len();
                             last_num = Some((indx, n));
                             tokens2.push(t1);
@@ -269,7 +374,7 @@ impl Add for SnailfishNumber {
             }
             if performed_reduction {
                 println!("performed_reduction=true");
-                tokens2.extend(indexed_tokens.map(|(t1, _)| t1));
+                tokens2.extend(token_pairs.map(|(t1, _)| t1));
                 tokens2.push(Token::Close);
                 let snail_num_2 = SnailfishNumber(tokens2.clone());
                 print!("tokens2: {:?} (", snail_num_2);
@@ -285,6 +390,19 @@ impl Add for SnailfishNumber {
         print!("tokens2: {:?} (", snail_num_2);
         println!("{})", snail_num_2.max_depth());
         Self(tokens2)
+    }
+}
+
+impl Add for SnailfishNumber {
+    /// The resulting type after applying the `+` operator.
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        // Concatenate both tokens.
+        let mut tokens1 = vec![Token::Open];
+        tokens1.extend(self.0.iter().chain(rhs.0.iter()));
+        tokens1.push(Token::Close);
+        SnailfishNumber(tokens1).reduce()
     }
 }
 
