@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use itertools::Itertools;
+use itertools::{iproduct, Itertools};
 use std::fmt::{Debug, Error, Formatter, Write};
-use std::mem;
+// use std::mem;
 use std::ops::Add;
 
 const TEST_INPUT: &str = "
@@ -32,160 +32,149 @@ const TEST_INPUT_2: &str = "
 ";
 
 fn main() {
-    // final_summation_example();
-    // big_summation_example();
-    // test_explode();
-    // test_reductions();
+    // let mut input = read_input(include_str!("../../puzzle_inputs/day_18.txt")).into_iter();
+    // // let mut input = read_input(TEST_INPUT_2.trim()).into_iter();
+    // let mut sum = input.next().unwrap();
+    // for (i, next) in input.enumerate() {
+    //     println!("({}) {:?}", i, sum);
+    //     println!("+ {:?}", next);
+    //     sum = sum + next;
+    //     println!("= {:?}\n", sum);
+    //     // if i == 1 {
+    //     //     break;
+    //     // }
+    // }
+    // println!("sum magnitude: {} (4145)", sum.magnitude());
 
-    // let s1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]");
-    // let s2 = SnailfishNumber::new("[1,1]");
-    // let answer = SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
-
-    // println!("\ns1: {s1:?} ({})", s1.max_depth());
-    // println!("s2: {s2:?} ({})", s2.max_depth());
-    // println!("answer 2: {answer:?} ({})\n", answer.max_depth());
-    // assert_eq!(s1 + s2, answer);
-
-    // let s1 = SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]");
-    // let s2 = SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]");
-    // let answer = SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]");
-
-    // println!("\ns1: {s1:?} ({})", s1.max_depth());
-    // println!("s2: {s2:?} ({})", s2.max_depth());
-
-    // println!("answer 2: {answer:?} ({})\n", answer.max_depth());
-    // let sum = s1 + s2;
-    // println!("sum: {sum:?} ({})\n", sum.max_depth());
-    // assert_eq!(sum, answer);
-
-    // let s = SnailfishNumber::new("[[9,1],[1,9]]");
-    // println!("{s:?} -> {}", s.magnitude());
-
-    let mut input = read_input(include_str!("../../puzzle_inputs/day_18.txt")).into_iter();
-    // let mut input = read_input(TEST_INPUT_2.trim()).into_iter();
-    let mut sum = input.next().unwrap();
-    for (i, next) in input.enumerate() {
-        println!("({}) {:?}", i, sum);
-        println!("+ {:?}", next);
-        sum = sum + next;
-        println!("= {:?}\n", sum);
-        // if i == 1 {
-        //     break;
-        // }
-    }
-    println!("sum magnitude: {}", sum.magnitude());
+    let input = read_input(include_str!("../../puzzle_inputs/day_18.txt"));
+    let answer = iproduct!(input.iter().enumerate(), input.iter().enumerate())
+        .filter_map(|((i1, s1), (i2, s2))| (i1 != i2).then(|| (s1 + s2).magnitude()))
+        .max()
+        .unwrap();
+    // // let mut input = read_input(TEST_INPUT_2.trim()).into_iter();
+    // let mut sum = input.next().unwrap();
+    // for (i, next) in input.enumerate() {
+    //     println!("({}) {:?}", i, sum);
+    //     println!("+ {:?}", next);
+    //     sum = sum + next;
+    //     println!("= {:?}\n", sum);
+    //     // if i == 1 {
+    //     //     break;
+    //     // }
+    // }
+    println!(": {} (4145)", answer);
 }
 
-fn test_reductions() {
-    let examples = [
-        (
-            SnailfishNumber::new("[[[[[9,8],1],2],3],4]"),
-            SnailfishNumber::new("[[[[0,9],2],3],4]"),
-        ),
-        (
-            SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]"),
-            SnailfishNumber::new("[7,[6,[5,[7,0]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]"),
-            SnailfishNumber::new("[[6,[5,[7,0]]],3]"),
-        ),
-        (
-            SnailfishNumber::new("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"),
-            SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
-            // SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
-            SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"),
-            SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"),
-        ),
-    ];
-    for (s1, s2) in examples {
-        // println!("s1: {:?}", s1);
-        println!("s1a: {:?}", s1);
-        println!("s2a: {:?}", s2);
-        let s1 = s1.reduce();
-        println!("s1b: {:?}", s1);
-        println!("s2b: {:?}", s2);
-        assert_eq!(s1, s2);
-        println!();
-    }
-    println!("All tests passed.");
-}
+// fn test_reductions() {
+//     let examples = [
+//         (
+//             SnailfishNumber::new("[[[[[9,8],1],2],3],4]"),
+//             SnailfishNumber::new("[[[[0,9],2],3],4]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]"),
+//             SnailfishNumber::new("[7,[6,[5,[7,0]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]"),
+//             SnailfishNumber::new("[[6,[5,[7,0]]],3]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"),
+//             SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
+//             // SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
+//             SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"),
+//             SnailfishNumber::new("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"),
+//         ),
+//     ];
+//     for (s1, s2) in examples {
+//         // println!("s1: {:?}", s1);
+//         println!("s1a: {:?}", s1);
+//         println!("s2a: {:?}", s2);
+//         let s1 = s1.reduce();
+//         println!("s1b: {:?}", s1);
+//         println!("s2b: {:?}", s2);
+//         assert_eq!(s1, s2);
+//         println!();
+//     }
+//     println!("All tests passed.");
+// }
 
-fn final_summation_example() {
-    let mut sum = SnailfishNumber::new("[1,1]");
-    for i in 2..=6 {
-        let rhs = SnailfishNumber::new(format!("[{i},{i}]").as_str());
-        println!("rhs: {:?}", rhs);
-        sum = sum + rhs;
-        println!("sum: {:?}", sum);
-    }
-}
+// fn final_summation_example() {
+//     let mut sum = SnailfishNumber::new("[1,1]");
+//     for i in 2..=6 {
+//         let rhs = SnailfishNumber::new(format!("[{i},{i}]").as_str());
+//         println!("rhs: {:?}", rhs);
+//         sum = *(&sum + &rhs);
+//         println!("sum: {:?}", sum);
+//     }
+// }
 
-fn big_summation_example() {
-    let examples = [
-        (
-            SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]"),
-            SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]"),
-            SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
-            SnailfishNumber::new("[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]"),
-            SnailfishNumber::new("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
-            SnailfishNumber::new("[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]"),
-            SnailfishNumber::new("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
-            SnailfishNumber::new("[7,[5,[[3,8],[1,4]]]]"),
-            SnailfishNumber::new("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
-            SnailfishNumber::new("[[2,[2,2]],[8,[8,1]]]"),
-            SnailfishNumber::new("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"),
-            SnailfishNumber::new("[2,9]"),
-            SnailfishNumber::new("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"),
-            SnailfishNumber::new("[1,[[[9,3],9],[[9,0],[0,7]]]]"),
-            SnailfishNumber::new("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"),
-            SnailfishNumber::new("[[[5,[7,4]],7],1]"),
-            SnailfishNumber::new("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"),
-        ),
-        (
-            SnailfishNumber::new("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"),
-            SnailfishNumber::new("[[[[4,2],2],6],[8,7]]"),
-            SnailfishNumber::new("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"),
-        ),
-    ];
+// fn big_summation_example() {
+//     let examples = [
+//         (
+//             SnailfishNumber::new("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]"),
+//             SnailfishNumber::new("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]"),
+//             SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
+//             SnailfishNumber::new("[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]"),
+//             SnailfishNumber::new("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
+//             SnailfishNumber::new("[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]"),
+//             SnailfishNumber::new("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
+//             SnailfishNumber::new("[7,[5,[[3,8],[1,4]]]]"),
+//             SnailfishNumber::new("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
+//             SnailfishNumber::new("[[2,[2,2]],[8,[8,1]]]"),
+//             SnailfishNumber::new("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"),
+//             SnailfishNumber::new("[2,9]"),
+//             SnailfishNumber::new("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"),
+//             SnailfishNumber::new("[1,[[[9,3],9],[[9,0],[0,7]]]]"),
+//             SnailfishNumber::new("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"),
+//             SnailfishNumber::new("[[[5,[7,4]],7],1]"),
+//             SnailfishNumber::new("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"),
+//         ),
+//         (
+//             SnailfishNumber::new("[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"),
+//             SnailfishNumber::new("[[[[4,2],2],6],[8,7]]"),
+//             SnailfishNumber::new("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"),
+//         ),
+//     ];
 
-    for (lhs, rhs, sum) in examples.into_iter().skip(1) {
-        let my_sum = lhs.clone() + rhs.clone();
-        println!("lhs: {lhs:?}");
-        println!("rhs: {rhs:?}");
-        println!("my_sum: {my_sum:?}");
-        println!("sum: {sum:?}");
-        // break;
-    }
-    println!("All tests passed - big_summation_example()");
-}
+//     for (lhs, rhs, sum) in examples.into_iter().skip(1) {
+//         let my_sum = lhs.clone() + rhs.clone();
+//         println!("lhs: {lhs:?}");
+//         println!("rhs: {rhs:?}");
+//         println!("my_sum: {my_sum:?}");
+//         println!("sum: {sum:?}");
+//         // break;
+//     }
+//     println!("All tests passed - big_summation_example()");
+// }
 
 fn test_explode() {
     let examples = [
@@ -493,9 +482,9 @@ impl SnailfishNumber {
     //     }
 }
 
-impl Add for SnailfishNumber {
+impl Add for &SnailfishNumber {
     /// The resulting type after applying the `+` operator.
-    type Output = Self;
+    type Output = SnailfishNumber;
 
     fn add(self, rhs: Self) -> Self::Output {
         // Concatenate both tokens.
