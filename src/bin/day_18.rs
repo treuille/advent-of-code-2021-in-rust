@@ -105,7 +105,7 @@ impl SnailfishNumber {
 
     /// Err(..) if the number split, Ok(..) otherwise
     fn split(self) -> Result<Self, Self> {
-        let mut tokens = Vec::with_capacity(self.0.len());
+        let mut tokens = Vec::with_capacity(self.0.len() + 3);
         let mut token_iter = self.0.into_iter();
         let greater_than_9 = token_iter.find_map(|token| match token {
             Token::Num(n) if n > 9 => Some(n),
