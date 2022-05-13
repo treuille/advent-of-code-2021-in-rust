@@ -134,9 +134,9 @@ impl Add for &SnailfishNumber {
 
         let mut result = SnailfishNumber(tokens1);
         loop {
-            match result.explode().and_then(|num| num.split()) {
-                Ok(num) => return num,
-                Err(num) => result = num,
+            match SnailfishNumber::explode(result).and_then(SnailfishNumber::split) {
+                Ok(num) => return num,    // the number is reduced
+                Err(num) => result = num, // need to keep reducing
             }
         }
     }
