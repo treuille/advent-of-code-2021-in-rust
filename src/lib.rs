@@ -31,6 +31,18 @@ pub mod parse_regex {
         }
     }
 
+    impl FromStr<'_> for i64 {
+        fn from_str(s: &'_ str) -> Self {
+            s.parse().unwrap()
+        }
+    }
+
+    impl FromStr<'_> for u64 {
+        fn from_str(s: &'_ str) -> Self {
+            s.parse().unwrap()
+        }
+    }
+
     impl FromStr<'_> for isize {
         fn from_str(s: &'_ str) -> Self {
             s.parse().unwrap()
