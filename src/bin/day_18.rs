@@ -61,7 +61,7 @@ impl SnailfishNumber {
         *magnitudes.last().unwrap()
     }
 
-    /// Err(..) if the number split, Ok(..) otherwise
+    /// Err(..) if the number exploded, Ok(..) otherwise
     fn explode(self) -> Result<Self, Self> {
         let mut depth = 0u8;
         let mut last_num = None;
