@@ -1,33 +1,43 @@
 use aoc::parse_regex::parse_lines;
-use itertools::iproduct;
+// use itertools::iproduct;
 use ndarray::prelude::*;
 use regex::Regex;
 
 fn main() {
     let mut beacons = read_input();
     let mut unsolved = beacons.split_off(1);
-    let mut solved = beacons;
+    let mut processing = beacons;
+    // let mut solved = Vec::new();
 
-    while !unsolved.is_empty() {
-        // let mut unsolved2 = Vec::with_capacity(unsolved.len() - 1);
-        // let candidates = unsolved.drain();
-        todo!("Move beacons unsolved -> solved");
-        // while let Some(beacon2) = candidates.next() {
-        // }
-        // }
-        // for (beacon1, beacon2) in iproduct!(solved.iter(), .enumerate()) {
-        //     match align(beacon1, beacon2) {
-        //         Ok(beacon2) => {
-        //             solved.push(beacon2);
-        //             break;
-        //         },
-        //         Err(beacon2)
-        //     }
-        //     tood!("What happens in this loop?")
-        // }
+    while let Some(beacon1) = processing.pop() {
+        for beacon2 in unsolved {
+            match align(&beacon1, beacon2) {
+                Ok(beacon2) => todo!("found a match"),
+                Err(beacon2) => todo!("didn't match"),
+            }
+        }
+        todo!("need to reset unsolved");
     }
-    println!("solved: {}", solved.len());
-    println!("unsolved: {}", unsolved.len());
+
+    // let mut unsolved2 = Vec::with_capacity(unsolved.len() - 1);
+    // let candidates = unsolved.drain();
+    // todo!("Move beacons unsolved -> solved");
+    // while let Some(beacon2) = candidates.next() {
+    // }
+    // }
+    // for (beacon1, beacon2) in iproduct!(solved.iter(), .enumerate()) {
+    //     match align(beacon1, beacon2) {
+    //         Ok(beacon2) => {
+    //             solved.push(beacon2);
+    //             break;
+    //         },
+    //         Err(beacon2)
+    //     }
+    //     tood!("What happens in this loop?")
+    // }
+    // }
+    // println!("solved: {}", solved.len());
+    // println!("unsolved: {}", unsolved.len());
 }
 
 type Beacon = Vec<Pt>;
