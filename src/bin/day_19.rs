@@ -1,5 +1,5 @@
 use aoc::parse_regex::parse_lines;
-// use itertools::iproduct;
+use itertools::iproduct;
 // use ndarray::prelude::*;
 use regex::Regex;
 use std::mem;
@@ -79,13 +79,27 @@ fn search_for_alignment(mut scanners: Vec<Scanner>) {
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
-    Err(scanner2)
+    // for rot in ROTATIONS.iter() {
+    //     println!("testing rotation: {:?}", rot);
+    //     let scanner2_rot: Scanner = scanner2.iter().map(|beacon| rotate(beacon, rot)).collect();
+    //     let translations: HashMap<Translation, usize) = HashMap::new();
+    //     // for (beacon1, beacon2) in iproduct!(scanner1.iter(), scanner2.iter()) {
+
+    //     // }
+    // }
+    todo!("Must finish align()")
 }
 
-/// A set of
+// A set of
 type Scanner = Vec<Beacon>;
 
 type Beacon = (i64, i64, i64);
+
+struct Translation(i64, i64, i64);
+
+// enum SignedAxis {
+
+// }
 
 // 1=i -1=-i 2=j -2=-j 3=k -3=-k
 type Rotation = (i8, i8, i8);
