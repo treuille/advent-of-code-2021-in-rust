@@ -86,31 +86,27 @@ fn search_for_alignment(mut scanners: Vec<Scanner>) {
     println!("unsolved: {}\n", unsolved.len());
 
     // Assemble the full set of beacons
-    let mut all_beacons: HashSet<&Beacon> =
+    let all_beacons: HashSet<&Beacon> =
         solved.iter().flat_map(|scanner| scanner.0.iter()).collect();
-    println!("found {} beacons", all_beacons.len());
+    println!(
+        "found {} beacons among {} scanners",
+        all_beacons.len() - n_scanners,
+        n_scanners
+    );
 
-    panic!("all done");
-
-    // let mut unsolved2 = Vec::with_capacity(unsolved.len() - 1);
-    // let candidates = unsolved.drain();
-    // todo!("Move scanners unsolved -> solved");
-    // while let Some(scanner2) = candidates.next() {
-    // }
-    // }
-    // for (scanner1, scanner2) in iproduct!(solved.iter(), .enumerate()) {
-    //     match align(scanner1, scanner2) {
-    //         Ok(scanner2) => {
-    //             solved.push(scanner2);
-    //             break;
-    //         },
-    //         Err(scanner2)
-    //     }
-    //     tood!("What happens in this loop?")
-    // }
-    // }
-    // println!("solved: {}", solved.len());
-    // println!("unsolved: {}", unsolved.len());
+    // Now figure out the largest manhattan distance among the beacons
+    let marker_beacons: Vec<&Beacon> = solved
+        .iter()
+        .map(|scanner| scanner.0.get(0).unwrap())
+        .collect();
+    println!("marker_beacons: {marker_beacons:?}");
+    let max_dist = iproduct!(marker_beacons.iter(), marker_beacons.iter())
+        .map(|(&marker1, &marker2)| {
+            let t = marker2 - marker1;
+            t.0.abs() + t.1.abs() + t.2.abs()
+        })
+        .max();
+    println!("max dist: {max_dist:?}");
 }
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
@@ -269,10 +265,15 @@ const ROTATIONS: [Rotation; 24] = [
 fn parse_beacon(s: &str) -> Scanner {
     let (_, s) = s.split_once("\n").unwrap();
     let re = Regex::new(r"(\-?\d+),(\-?\d+),(\-?\d+)").unwrap();
-    let beacons: Vec<Beacon> = parse_lines(&re, s)
-        .map(|(x, y, z)| Beacon(x, y, z))
-        .collect();
-    assert!(!beacons.contains(&Beacon(0, 0, 0)));
+
+    let mut beacons = vec![Beacon(0, 0, 0)];
+    beacons.extend(parse_lines(&re, s).map(|(x, y, z)| Beacon(x, y, z)));
+
+    // let beacons: Vec<Beacon> = parse_lines(&re, s)
+    //     .map(|(x, y, z)| Beacon(x, y, z))
+    //     .collect();
+    // assert!(!beacons.contains(&Beacon(0, 0, 0)));
+
     Scanner(beacons)
 }
 
