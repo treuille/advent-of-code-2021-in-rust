@@ -1,5 +1,5 @@
 use aoc::parse_regex::parse_lines;
-use itertools::iproduct;
+use itertools::{iproduct, Itertools};
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Error as FormatErr, Formatter};
@@ -7,19 +7,28 @@ use std::mem;
 use std::ops::{Add, Sub};
 
 fn main() {
-    println!("rotations: {:?}", ROTATIONS);
+    // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
+    let mut scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
+    search_for_alignment(&mut scanners);
 
-    // test the alignment algorithm with the first two scanners
-    let scanners = read_input();
-    println!("{:?}", scanners[0]);
-    search_for_alignment(scanners);
+    println!("19a: {} (362)", solve_19a(&scanners));
 }
 
-fn search_for_alignment(mut scanners: Vec<Scanner>) {
+fn solve_19a(scanners: &[Scanner]) -> usize {
+    let marker_beacons = scanners.len();
+    let all_beacons = scanners
+        .iter()
+        .flat_map(|scanner| scanner.0.iter())
+        .unique()
+        .count();
+    all_beacons - marker_beacons
+}
+
+fn search_for_alignment(scanners: &mut Vec<Scanner>) {
     let n_scanners = scanners.len();
     let mut unsolved = scanners.split_off(1); // we need to connect these
     let mut solved = Vec::new(); // we have checked these against all others
-    let mut processing = scanners; // we need to check these
+    let processing = scanners; // we need to check these
 
     println!("just starting");
     println!("solved: {}", solved.len());
@@ -59,15 +68,6 @@ fn search_for_alignment(mut scanners: Vec<Scanner>) {
     println!("processing: {}", processing.len());
     println!("unsolved: {}\n", unsolved.len());
 
-    // Assemble the full set of beacons
-    let all_beacons: HashSet<&Beacon> =
-        solved.iter().flat_map(|scanner| scanner.0.iter()).collect();
-    println!(
-        "found {} beacons among {} scanners",
-        all_beacons.len() - n_scanners,
-        n_scanners
-    );
-
     // Now figure out the largest manhattan distance among the beacons
     let marker_beacons: Vec<&Beacon> = solved
         .iter()
@@ -81,6 +81,9 @@ fn search_for_alignment(mut scanners: Vec<Scanner>) {
         })
         .max();
     println!("max dist: {max_dist:?}");
+
+    // TODO: make this a return statement
+    mem::swap(processing, &mut solved);
 }
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
@@ -245,9 +248,6 @@ fn parse_beacon(s: &str) -> Scanner {
     Scanner(beacons)
 }
 
-/// Read the input file and turn it into an Array2<u8>
-fn read_input() -> Vec<Scanner> {
-    // let scanners = include_str!("../../puzzle_inputs/day_19_test.txt").split("\n\n");
-    let scanners = include_str!("../../puzzle_inputs/day_19.txt").split("\n\n");
-    scanners.map(parse_beacon).collect()
+fn read_input(input: &str) -> Vec<Scanner> {
+    input.split("\n\n").map(parse_beacon).collect()
 }
