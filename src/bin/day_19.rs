@@ -7,31 +7,31 @@ use std::mem;
 fn main() {
     println!("rotations: {:?}", ROTATIONS);
 
-    // test the alignment algorithm with the first two beacons
-    let beacons = read_input();
-    let mut beacons = beacons.into_iter();
-    let beacon1 = beacons.next().unwrap();
-    let beacon2 = beacons.next().unwrap();
-    let beacon3 = align(&beacon1, beacon2);
-    println!("beacon3: {:?}", beacon3);
+    // test the alignment algorithm with the first two scanners
+    let scanners = read_input();
+    let mut scanners = scanners.into_iter();
+    let scanner1 = scanners.next().unwrap();
+    let scanner2 = scanners.next().unwrap();
+    let scanner3 = align(&scanner1, scanner2);
+    println!("scanner3: {:?}", scanner3);
 }
 
-fn search_for_alignment(mut beacons: Vec<Beacon>) {
-    let n_beacons = beacons.len();
-    let mut unsolved = beacons.split_off(1); // we need to connect these
+fn search_for_alignment(mut scanners: Vec<Scanner>) {
+    let n_scanners = scanners.len();
+    let mut unsolved = scanners.split_off(1); // we need to connect these
     let mut solved = Vec::new(); // we have checked these against all others
-    let mut processing = beacons; // we need to check these
+    let mut processing = scanners; // we need to check these
     println!("just starting");
     println!("solved: {}", solved.len());
     println!("processing: {}", processing.len());
     println!("unsolved: {}\n", unsolved.len());
-    while let Some(beacon1) = processing.pop() {
+    while let Some(scanner1) = processing.pop() {
         let mut still_unsolved = Vec::new();
-        while let Some(beacon2) = unsolved.pop() {
-            println!("Solving beacon with {} scanners.", beacon2.len());
-            match align(&beacon1, beacon2) {
-                Ok(beacon2) => processing.push(beacon2),
-                Err(beacon2) => still_unsolved.push(beacon2),
+        while let Some(scanner2) = unsolved.pop() {
+            println!("Solving beacon with {} scanners.", scanner2.len());
+            match align(&scanner1, scanner2) {
+                Ok(scanner2) => processing.push(scanner2),
+                Err(scanner2) => still_unsolved.push(scanner2),
             }
 
             println!("finished inter while");
@@ -40,10 +40,10 @@ fn search_for_alignment(mut beacons: Vec<Beacon>) {
             println!("unsolved: {}\n", unsolved.len());
         }
         mem::swap(&mut unsolved, &mut still_unsolved);
-        solved.push(beacon1);
+        solved.push(scanner1);
         assert_eq!(
             solved.len() + processing.len() + unsolved.len(),
-            n_beacons,
+            n_scanners,
             "Lost track of a beacon."
         );
         assert!(processing.len() > 0, "Nothing more to process.");
@@ -57,33 +57,35 @@ fn search_for_alignment(mut beacons: Vec<Beacon>) {
 
     // let mut unsolved2 = Vec::with_capacity(unsolved.len() - 1);
     // let candidates = unsolved.drain();
-    // todo!("Move beacons unsolved -> solved");
-    // while let Some(beacon2) = candidates.next() {
+    // todo!("Move scanners unsolved -> solved");
+    // while let Some(scanner2) = candidates.next() {
     // }
     // }
-    // for (beacon1, beacon2) in iproduct!(solved.iter(), .enumerate()) {
-    //     match align(beacon1, beacon2) {
-    //         Ok(beacon2) => {
-    //             solved.push(beacon2);
+    // for (scanner1, scanner2) in iproduct!(solved.iter(), .enumerate()) {
+    //     match align(scanner1, scanner2) {
+    //         Ok(scanner2) => {
+    //             solved.push(scanner2);
     //             break;
     //         },
-    //         Err(beacon2)
+    //         Err(scanner2)
     //     }
     //     tood!("What happens in this loop?")
     // }
     // }
     // println!("solved: {}", solved.len());
     // println!("unsolved: {}", unsolved.len());
-    // println!("{:?}", beacons[0]);
+    // println!("{:?}", scanners[0]);
 }
 
-/// Ok(beacon2) if they can be aligned, Err(beacon2) otherwise.
-fn align(beacon1: &Beacon, beacon2: Beacon) -> Result<Beacon, Beacon> {
-    Err(beacon2)
+/// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
+fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
+    Err(scanner2)
 }
-type Beacon = Vec<Pt>;
 
-type Pt = (i64, i64, i64);
+/// A set of
+type Scanner = Vec<Beacon>;
+
+type Beacon = (i64, i64, i64);
 
 // 1=i -1=-i 2=j -2=-j 3=k -3=-k
 type Rotation = (i8, i8, i8);
@@ -117,7 +119,7 @@ const ROTATIONS: [Rotation; 24] = [
 ];
 
 /// Rotates the point along the origin by the given amount
-fn rotate(pt: &Pt, rot: &Rotation) -> Pt {
+fn rotate(pt: &Beacon, rot: &Rotation) -> Beacon {
     let coord = |axis: i8| match axis {
         1 => pt.0,
         2 => pt.1,
@@ -130,19 +132,19 @@ fn rotate(pt: &Pt, rot: &Rotation) -> Pt {
     (coord(rot.0), coord(rot.1), coord(rot.2))
 }
 
-// fn align_with(beacon1: &Beacon, beacon2: &Beacon, tranform: F) where
+// fn align_with(scanner1: &Beacon, scanner2: &Beacon, tranform: F) where
 // F: Fn(Pt) -> Pt {
 
 // }
 
-fn parse_beacon(s: &str) -> Beacon {
+fn parse_beacon(s: &str) -> Scanner {
     let (_, s) = s.split_once("\n").unwrap();
     let re = Regex::new(r"(\-?\d+),(\-?\d+),(\-?\d+)").unwrap();
     parse_lines(&re, s).collect()
 }
 
 /// Read the input file and turn it into an Array2<u8>
-fn read_input() -> Vec<Beacon> {
-    let beacons = include_str!("../../puzzle_inputs/day_19_test.txt").split("\n\n");
-    beacons.map(parse_beacon).collect()
+fn read_input() -> Vec<Scanner> {
+    let scanners = include_str!("../../puzzle_inputs/day_19_test.txt").split("\n\n");
+    scanners.map(parse_beacon).collect()
 }
