@@ -7,7 +7,16 @@ use std::mem;
 fn main() {
     println!("rotations: {:?}", ROTATIONS);
 
-    let mut beacons = read_input();
+    // test the alignment algorithm with the first two beacons
+    let beacons = read_input();
+    let mut beacons = beacons.into_iter();
+    let beacon1 = beacons.next().unwrap();
+    let beacon2 = beacons.next().unwrap();
+    let beacon3 = align(&beacon1, beacon2);
+    println!("beacon3: {:?}", beacon3);
+}
+
+fn search_for_alignment(mut beacons: Vec<Beacon>) {
     let n_beacons = beacons.len();
     let mut unsolved = beacons.split_off(1); // we need to connect these
     let mut solved = Vec::new(); // we have checked these against all others
