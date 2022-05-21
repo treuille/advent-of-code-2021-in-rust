@@ -1,8 +1,7 @@
 use aoc::parse_regex::parse_lines;
 use itertools::iproduct;
-use std::collections::{HashMap, HashSet};
-// use ndarray::prelude::*;
 use regex::Regex;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Error as FormatErr, Formatter};
 use std::mem;
 use std::ops::{Add, Sub};
@@ -14,31 +13,6 @@ fn main() {
     let scanners = read_input();
     println!("{:?}", scanners[0]);
     search_for_alignment(scanners);
-
-    // let mut scanners = scanners.into_iter();
-    // let scanner0 = scanners.next().unwrap();
-    // let scanner1 = scanners.next().unwrap();
-    // let scanner2 = scanners.next().unwrap();
-    // let scanner3 = scanners.next().unwrap();
-    // let scanner4 = scanners.next().unwrap();
-
-    // let scanner1 = align(&scanner0, scanner1).unwrap();
-    // let scanner4 = align(&scanner1, scanner4);
-
-    // if let Ok(scanner) = scanner4 {
-    //     let scanner1: HashSet<Beacon> = scanner1.0.into_iter().collect();
-    //     let mut n_matches: usize = 0;
-    //     for beacon in scanner.0.iter() {
-    //         if scanner1.contains(beacon) {
-    //             n_matches += 1;
-    //             println!("{beacon:?} -> {n_matches}");
-    //         } else {
-    //             println!("{beacon:?} XXX");
-    //         }
-    //     }
-    // } else {
-    //     println!("did not match");
-    // }
 }
 
 fn search_for_alignment(mut scanners: Vec<Scanner>) {
@@ -268,12 +242,6 @@ fn parse_beacon(s: &str) -> Scanner {
 
     let mut beacons = vec![Beacon(0, 0, 0)];
     beacons.extend(parse_lines(&re, s).map(|(x, y, z)| Beacon(x, y, z)));
-
-    // let beacons: Vec<Beacon> = parse_lines(&re, s)
-    //     .map(|(x, y, z)| Beacon(x, y, z))
-    //     .collect();
-    // assert!(!beacons.contains(&Beacon(0, 0, 0)));
-
     Scanner(beacons)
 }
 
