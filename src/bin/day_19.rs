@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 // use ndarray::prelude::*;
 use regex::Regex;
 use std::fmt::{Debug, Error as FormatErr, Formatter};
+use std::mem;
 use std::ops::{Add, Sub};
 
 fn main() {
@@ -12,84 +13,105 @@ fn main() {
     // test the alignment algorithm with the first two scanners
     let scanners = read_input();
     println!("{:?}", scanners[0]);
-    let mut scanners = scanners.into_iter();
-    let scanner1 = scanners.next().unwrap();
-    let scanner2 = scanners.next().unwrap();
-    let scanner3 = align(&scanner1, scanner2);
-    println!("scanner3: {:?}", scanner3);
-    if let Ok(scanner3) = scanner3 {
-        let scanner1: HashSet<Beacon> = scanner1.0.into_iter().collect();
-        let mut n_matches: usize = 0;
-        for beacon3 in scanner3.0.iter() {
-            if scanner1.contains(beacon3) {
-                n_matches += 1;
-                println!("{beacon3:?} -> {n_matches}");
-            } else {
-                println!("{beacon3:?} XXX");
-            }
-        }
-    }
+    search_for_alignment(scanners);
+
+    // let mut scanners = scanners.into_iter();
+    // let scanner0 = scanners.next().unwrap();
+    // let scanner1 = scanners.next().unwrap();
+    // let scanner2 = scanners.next().unwrap();
+    // let scanner3 = scanners.next().unwrap();
+    // let scanner4 = scanners.next().unwrap();
+
+    // let scanner1 = align(&scanner0, scanner1).unwrap();
+    // let scanner4 = align(&scanner1, scanner4);
+
+    // if let Ok(scanner) = scanner4 {
+    //     let scanner1: HashSet<Beacon> = scanner1.0.into_iter().collect();
+    //     let mut n_matches: usize = 0;
+    //     for beacon in scanner.0.iter() {
+    //         if scanner1.contains(beacon) {
+    //             n_matches += 1;
+    //             println!("{beacon:?} -> {n_matches}");
+    //         } else {
+    //             println!("{beacon:?} XXX");
+    //         }
+    //     }
+    // } else {
+    //     println!("did not match");
+    // }
 }
 
-// fn search_for_alignment(mut scanners: Vec<Scanner>) {
-//     let n_scanners = scanners.len();
-//     let mut unsolved = scanners.split_off(1); // we need to connect these
-//     let mut solved = Vec::new(); // we have checked these against all others
-//     let mut processing = scanners; // we need to check these
-//     println!("just starting");
-//     println!("solved: {}", solved.len());
-//     println!("processing: {}", processing.len());
-//     println!("unsolved: {}\n", unsolved.len());
-//     while let Some(scanner1) = processing.pop() {
-//         let mut still_unsolved = Vec::new();
-//         while let Some(scanner2) = unsolved.pop() {
-//             println!("Solving beacon with {} scanners.", scanner2.len());
-//             match align(&scanner1, scanner2) {
-//                 Ok(scanner2) => processing.push(scanner2),
-//                 Err(scanner2) => still_unsolved.push(scanner2),
-//             }
+fn search_for_alignment(mut scanners: Vec<Scanner>) {
+    let n_scanners = scanners.len();
+    let mut unsolved = scanners.split_off(1); // we need to connect these
+    let mut solved = Vec::new(); // we have checked these against all others
+    let mut processing = scanners; // we need to check these
 
-//             println!("finished inter while");
-//             println!("solved: {}", solved.len());
-//             println!("processing: {}", processing.len());
-//             println!("unsolved: {}\n", unsolved.len());
-//         }
-//         mem::swap(&mut unsolved, &mut still_unsolved);
-//         solved.push(scanner1);
-//         assert_eq!(
-//             solved.len() + processing.len() + unsolved.len(),
-//             n_scanners,
-//             "Lost track of a beacon."
-//         );
-//         assert!(processing.len() > 0, "Nothing more to process.");
+    println!("just starting");
+    println!("solved: {}", solved.len());
+    println!("processing: {}", processing.len());
+    println!("unsolved: {}\n", unsolved.len());
 
-//         println!("finished outer while");
-//         println!("solved: {}", solved.len());
-//         println!("processing: {}", processing.len());
-//         println!("unsolved: {}\n", unsolved.len());
-//         panic!("outer while loop");
-//     }
+    while let Some(scanner1) = processing.pop() {
+        let mut still_unsolved = Vec::new();
+        while let Some(scanner2) = unsolved.pop() {
+            println!("Solving scanner with {} beacons.", scanner2.0.len());
+            match align(&scanner1, scanner2) {
+                Ok(scanner2) => processing.push(scanner2),
+                Err(scanner2) => still_unsolved.push(scanner2),
+            }
 
-//     // let mut unsolved2 = Vec::with_capacity(unsolved.len() - 1);
-//     // let candidates = unsolved.drain();
-//     // todo!("Move scanners unsolved -> solved");
-//     // while let Some(scanner2) = candidates.next() {
-//     // }
-//     // }
-//     // for (scanner1, scanner2) in iproduct!(solved.iter(), .enumerate()) {
-//     //     match align(scanner1, scanner2) {
-//     //         Ok(scanner2) => {
-//     //             solved.push(scanner2);
-//     //             break;
-//     //         },
-//     //         Err(scanner2)
-//     //     }
-//     //     tood!("What happens in this loop?")
-//     // }
-//     // }
-//     // println!("solved: {}", solved.len());
-//     // println!("unsolved: {}", unsolved.len());
-// }
+            println!("finished inter while");
+            println!("solved: {}", solved.len());
+            println!("processing: {}", processing.len());
+            println!("unsolved: {}\n", unsolved.len());
+        }
+        mem::swap(&mut unsolved, &mut still_unsolved);
+        solved.push(scanner1);
+        assert_eq!(
+            solved.len() + processing.len() + unsolved.len(),
+            n_scanners,
+            "Lost track of a beacon."
+        );
+
+        println!("finished outer while");
+        println!("solved: {}", solved.len());
+        println!("processing: {}", processing.len());
+        println!("unsolved: {}\n", unsolved.len());
+    }
+
+    println!("all done");
+    println!("solved: {}", solved.len());
+    println!("processing: {}", processing.len());
+    println!("unsolved: {}\n", unsolved.len());
+
+    // Assemble the full set of beacons
+    let mut all_beacons: HashSet<&Beacon> =
+        solved.iter().flat_map(|scanner| scanner.0.iter()).collect();
+    println!("found {} beacons", all_beacons.len());
+
+    panic!("all done");
+
+    // let mut unsolved2 = Vec::with_capacity(unsolved.len() - 1);
+    // let candidates = unsolved.drain();
+    // todo!("Move scanners unsolved -> solved");
+    // while let Some(scanner2) = candidates.next() {
+    // }
+    // }
+    // for (scanner1, scanner2) in iproduct!(solved.iter(), .enumerate()) {
+    //     match align(scanner1, scanner2) {
+    //         Ok(scanner2) => {
+    //             solved.push(scanner2);
+    //             break;
+    //         },
+    //         Err(scanner2)
+    //     }
+    //     tood!("What happens in this loop?")
+    // }
+    // }
+    // println!("solved: {}", solved.len());
+    // println!("unsolved: {}", unsolved.len());
+}
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
@@ -247,15 +269,16 @@ const ROTATIONS: [Rotation; 24] = [
 fn parse_beacon(s: &str) -> Scanner {
     let (_, s) = s.split_once("\n").unwrap();
     let re = Regex::new(r"(\-?\d+),(\-?\d+),(\-?\d+)").unwrap();
-    Scanner(
-        parse_lines(&re, s)
-            .map(|(x, y, z)| Beacon(x, y, z))
-            .collect(),
-    )
+    let beacons: Vec<Beacon> = parse_lines(&re, s)
+        .map(|(x, y, z)| Beacon(x, y, z))
+        .collect();
+    assert!(!beacons.contains(&Beacon(0, 0, 0)));
+    Scanner(beacons)
 }
 
 /// Read the input file and turn it into an Array2<u8>
 fn read_input() -> Vec<Scanner> {
-    let scanners = include_str!("../../puzzle_inputs/day_19_test.txt").split("\n\n");
+    // let scanners = include_str!("../../puzzle_inputs/day_19_test.txt").split("\n\n");
+    let scanners = include_str!("../../puzzle_inputs/day_19.txt").split("\n\n");
     scanners.map(parse_beacon).collect()
 }
