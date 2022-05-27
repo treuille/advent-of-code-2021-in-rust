@@ -1,17 +1,19 @@
 use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::{Debug, Error as FormatErr, Formatter};
 use std::mem;
 use std::ops::{Add, Sub};
 
 fn main() {
     // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
-    let mut scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
-    search_for_alignment(&mut scanners);
+    let scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
+
+    let scanners = align_all(scanners);
 
     println!("19a: {} (362)", solve_19a(&scanners));
+    println!("19b: {} (12204)", solve_19b(&scanners));
 }
 
 fn solve_19a(scanners: &[Scanner]) -> usize {
@@ -24,11 +26,26 @@ fn solve_19a(scanners: &[Scanner]) -> usize {
     all_beacons - marker_beacons
 }
 
-fn search_for_alignment(scanners: &mut Vec<Scanner>) {
+fn solve_19b(scanners: &[Scanner]) -> i64 {
+    let marker_beacons: Vec<&Beacon> = scanners
+        .iter()
+        .map(|scanner| scanner.0.first().unwrap())
+        .collect();
+    iproduct!(marker_beacons.iter(), marker_beacons.iter())
+        .map(|(&marker1, &marker2)| {
+            let t = marker2 - marker1;
+            t.0.abs() + t.1.abs() + t.2.abs()
+        })
+        .max()
+        .unwrap()
+}
+
+/// Align all the scanners to scanner[0], returning the result.
+fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
     let n_scanners = scanners.len();
     let mut unsolved = scanners.split_off(1); // we need to connect these
     let mut solved = Vec::new(); // we have checked these against all others
-    let processing = scanners; // we need to check these
+    let mut processing = scanners; // we need to check these
 
     println!("just starting");
     println!("solved: {}", solved.len());
@@ -68,22 +85,7 @@ fn search_for_alignment(scanners: &mut Vec<Scanner>) {
     println!("processing: {}", processing.len());
     println!("unsolved: {}\n", unsolved.len());
 
-    // Now figure out the largest manhattan distance among the beacons
-    let marker_beacons: Vec<&Beacon> = solved
-        .iter()
-        .map(|scanner| scanner.0.get(0).unwrap())
-        .collect();
-    println!("marker_beacons: {marker_beacons:?}");
-    let max_dist = iproduct!(marker_beacons.iter(), marker_beacons.iter())
-        .map(|(&marker1, &marker2)| {
-            let t = marker2 - marker1;
-            t.0.abs() + t.1.abs() + t.2.abs()
-        })
-        .max();
-    println!("max dist: {max_dist:?}");
-
-    // TODO: make this a return statement
-    mem::swap(processing, &mut solved);
+    solved
 }
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
