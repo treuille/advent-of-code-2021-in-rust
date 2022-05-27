@@ -1,7 +1,7 @@
 use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
 use regex::Regex;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Error as FormatErr, Formatter};
 use std::mem;
 use std::ops::{Add, Sub};
@@ -31,11 +31,33 @@ fn main() {
 
     let evens = [(1, 2, 3), (2, 3, 1), (3, 1, 2)].into_iter();
     let odds = [(2, 1, 3), (1, 3, 2), (3, 2, 1)].into_iter();
-    let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
     let odds = odds.flat_map(|(i, j, k)| [(-i, j, k), (i, -j, k), (i, j, -k), (-i, -j, -k)]);
-    for (i, even) in evens.chain(odds).enumerate() {
-        println!("{i} -> {even:?}");
-    }
+    let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
+    let rots: Vec<Rotation> = evens
+        .chain(odds)
+        .map(|(i, j, k)| {
+            fn to_signed_axis(i: i8) -> SignedAxis {
+                match i {
+                    -1 => SignedAxis::NegX,
+                    -2 => SignedAxis::NegY,
+                    -3 => SignedAxis::NegZ,
+                    1 => SignedAxis::PosX,
+                    2 => SignedAxis::PosY,
+                    3 => SignedAxis::PosZ,
+                    _ => panic!("Not expected: {i}"),
+                }
+            }
+            Rotation(to_signed_axis(i), to_signed_axis(j), to_signed_axis(k))
+        })
+        .collect();
+
+    // for (i, even) in new_rots.iter().enumerate() {
+    //     println!("{i} -> :{even:?}");
+    // }
+
+    let new_rots: HashSet<&Rotation> = rots.iter().collect();
+    let old_rots: HashSet<&Rotation> = ROTATIONS.iter().collect();
+    println!("equal: {}", new_rots == old_rots);
 }
 
 fn solve_19a(scanners: &[Scanner]) -> usize {
@@ -147,7 +169,7 @@ impl Scanner {
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Translation(i64, i64, i64);
 
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
 enum SignedAxis {
     NegX,
     NegY,
@@ -171,6 +193,7 @@ impl Debug for SignedAxis {
 }
 
 // 1=i NegX=-i 2=j NegY=-j 3=k NegZ=-k
+#[derive(PartialEq, Eq, Hash)]
 struct Rotation(SignedAxis, SignedAxis, SignedAxis);
 
 // Rotates the point along the origin by the given amount
