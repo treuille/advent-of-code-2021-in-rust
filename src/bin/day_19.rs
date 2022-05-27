@@ -2,7 +2,6 @@ use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
 use regex::Regex;
 use std::collections::HashMap;
-use std::fmt::{Debug, Error as FormatErr, Formatter};
 use std::mem;
 use std::ops::{Add, Sub};
 
@@ -14,28 +13,6 @@ fn main() {
 
     println!("19a: {} (362)", solve_19a(&scanners));
     println!("19b: {} (12204)", solve_19b(&scanners));
-
-    // for (i, rot) in ROTATIONS.iter().enumerate() {
-    //     println!("{i}: {rot:?}");
-    // }
-
-    // // even permutation
-    // 0: Rot(x, y, z)
-    // 12: Rot(y, z, x)
-    // : Rot(z, x, y)
-
-    // // odd permutations
-    // Rot(-x, z, y)
-    // 8: Rot(-y, x, z)
-    // Rot(-z, y, x)
-
-    // evens
-    // //     println!("{i} -> :{even:?}");
-    // // }
-
-    // let new_rots: HashSet<&Rotation> = rots.iter().collect();
-    // let old_rots: HashSet<&Rotation> = ROTATIONS.iter().collect();
-    // println!("equal: {}", new_rots == old_rots);
 }
 
 fn solve_19a(scanners: &[Scanner]) -> usize {
@@ -90,7 +67,7 @@ fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
-    for rot in Rotation::all_right_handed_rotations() {
+    for rot in all_right_handed_rotations() {
         // for rot in ROTATIONS.iter() {
         // TODO: rename to scanner2
         let scanner2_rot: Scanner = scanner2.rotate(&rot);
@@ -123,6 +100,15 @@ impl Add<&Translation> for &Beacon {
 /// Subtraction two Beacon gives a Translation.
 impl Sub for &Beacon {
     type Output = Translation;
+    // let coord = |axis: SignedAxis| match axis {
+    //     SignedAxis::NegX => -beacon.0,
+    //     SignedAxis::NegY => -beacon.1,
+    //     SignedAxis::NegZ => -beacon.2,
+    //     SignedAxis::PosX => beacon.0,
+    //     SignedAxis::PosY => beacon.1,
+    //     SignedAxis::PosZ => beacon.2,
+    // };
+    // Beacon(coord(self.0), coord(self.1), coord(self.2))
 
     fn sub(self, rhs: Self) -> Self::Output {
         Translation(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
@@ -136,7 +122,17 @@ struct Scanner(Vec<Beacon>);
 impl Scanner {
     /// Rotate all the beacons in a scanner.
     fn rotate(&self, rot: &Rotation) -> Scanner {
-        Scanner(self.0.iter().map(|beacon| rot.apply(beacon)).collect())
+        let coord = |b: &Beacon, axis: i8| match axis {
+            -1 => -b.0,
+            -2 => -b.1,
+            -3 => -b.2,
+            1 => b.0,
+            2 => b.1,
+            3 => b.2,
+            _ => panic!("Unexpected axis in rotation: {axis}"),
+        };
+        let rotate = |b: &Beacon| Beacon(coord(b, rot.0), coord(b, rot.1), coord(b, rot.2));
+        Scanner(self.0.iter().map(rotate).collect())
     }
 
     /// Tranlate all the beacons in a scanner.
@@ -148,76 +144,16 @@ impl Scanner {
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Translation(i64, i64, i64);
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
-enum SignedAxis {
-    NegX,
-    NegY,
-    NegZ,
-    PosX,
-    PosY,
-    PosZ,
-}
+/// An axis-aligned rotation: -1=-x, 1=x, -2=-y, 2=y, -3=-z, 3=z
+type Rotation = (i8, i8, i8);
 
-impl Debug for SignedAxis {
-    fn fmt<'a>(&self, formatter: &mut Formatter<'a>) -> Result<(), FormatErr> {
-        match self {
-            SignedAxis::NegX => formatter.write_str("-x"),
-            SignedAxis::NegY => formatter.write_str("-y"),
-            SignedAxis::NegZ => formatter.write_str("-z"),
-            SignedAxis::PosX => formatter.write_str("x"),
-            SignedAxis::PosY => formatter.write_str("y"),
-            SignedAxis::PosZ => formatter.write_str("z"),
-        }
-    }
-}
-
-// 1=i NegX=-i 2=j NegY=-j 3=k NegZ=-k
-#[derive(PartialEq, Eq, Hash)]
-struct Rotation(SignedAxis, SignedAxis, SignedAxis);
-
-// Rotates the point along the origin by the given amount
-impl Rotation {
-    fn apply(&self, beacon: &Beacon) -> Beacon {
-        let coord = |axis: SignedAxis| match axis {
-            SignedAxis::NegX => -beacon.0,
-            SignedAxis::NegY => -beacon.1,
-            SignedAxis::NegZ => -beacon.2,
-            SignedAxis::PosX => beacon.0,
-            SignedAxis::PosY => beacon.1,
-            SignedAxis::PosZ => beacon.2,
-        };
-        Beacon(coord(self.0), coord(self.1), coord(self.2))
-    }
-
-    fn all_right_handed_rotations() -> impl Iterator<Item = Rotation> {
-        let evens = [(1, 2, 3), (2, 3, 1), (3, 1, 2)].into_iter();
-        let odds = [(2, 1, 3), (1, 3, 2), (3, 2, 1)].into_iter();
-        let odds = odds.flat_map(|(i, j, k)| [(-i, j, k), (i, -j, k), (i, j, -k), (-i, -j, -k)]);
-        let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
-        evens.chain(odds).map(|(i, j, k)| {
-            fn to_signed_axis(i: i8) -> SignedAxis {
-                match i {
-                    -1 => SignedAxis::NegX,
-                    -2 => SignedAxis::NegY,
-                    -3 => SignedAxis::NegZ,
-                    1 => SignedAxis::PosX,
-                    2 => SignedAxis::PosY,
-                    3 => SignedAxis::PosZ,
-                    _ => panic!("Not expected: {i}"),
-                }
-            }
-            Rotation(to_signed_axis(i), to_signed_axis(j), to_signed_axis(k))
-        })
-    }
-}
-
-impl Debug for Rotation {
-    fn fmt<'a>(&self, formatter: &mut Formatter<'a>) -> Result<(), FormatErr> {
-        formatter.write_fmt(format_args!(
-            "Rot({:?}, {:?}, {:?})",
-            self.0, self.1, self.2
-        ))
-    }
+/// An iterator over all 24 axis-aligned right-handed rotations
+fn all_right_handed_rotations() -> impl Iterator<Item = Rotation> {
+    let evens = [(1, 2, 3), (2, 3, 1), (3, 1, 2)].into_iter();
+    let odds = [(2, 1, 3), (1, 3, 2), (3, 2, 1)].into_iter();
+    let odds = odds.flat_map(|(i, j, k)| [(-i, j, k), (i, -j, k), (i, j, -k), (-i, -j, -k)]);
+    let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
+    evens.chain(odds)
 }
 
 fn parse_beacon(s: &str) -> Scanner {
