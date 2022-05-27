@@ -100,15 +100,6 @@ impl Add<&Translation> for &Beacon {
 /// Subtraction two Beacon gives a Translation.
 impl Sub for &Beacon {
     type Output = Translation;
-    // let coord = |axis: SignedAxis| match axis {
-    //     SignedAxis::NegX => -beacon.0,
-    //     SignedAxis::NegY => -beacon.1,
-    //     SignedAxis::NegZ => -beacon.2,
-    //     SignedAxis::PosX => beacon.0,
-    //     SignedAxis::PosY => beacon.1,
-    //     SignedAxis::PosZ => beacon.2,
-    // };
-    // Beacon(coord(self.0), coord(self.1), coord(self.2))
 
     fn sub(self, rhs: Self) -> Self::Output {
         Translation(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
