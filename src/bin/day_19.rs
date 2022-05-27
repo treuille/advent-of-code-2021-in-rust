@@ -1,23 +1,23 @@
 use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::{Debug, Error as FormatErr, Formatter};
 use std::mem;
 use std::ops::{Add, Sub};
 
 fn main() {
-    // // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
-    // let scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
+    // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
+    let scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
 
-    // let scanners = align_all(scanners);
+    let scanners = align_all(scanners);
 
-    // println!("19a: {} (362)", solve_19a(&scanners));
-    // println!("19b: {} (12204)", solve_19b(&scanners));
-    //
-    for (i, rot) in ROTATIONS.iter().enumerate() {
-        println!("{i}: {rot:?}");
-    }
+    println!("19a: {} (362)", solve_19a(&scanners));
+    println!("19b: {} (12204)", solve_19b(&scanners));
+
+    // for (i, rot) in ROTATIONS.iter().enumerate() {
+    //     println!("{i}: {rot:?}");
+    // }
 
     // // even permutation
     // 0: Rot(x, y, z)
@@ -29,35 +29,13 @@ fn main() {
     // 8: Rot(-y, x, z)
     // Rot(-z, y, x)
 
-    let evens = [(1, 2, 3), (2, 3, 1), (3, 1, 2)].into_iter();
-    let odds = [(2, 1, 3), (1, 3, 2), (3, 2, 1)].into_iter();
-    let odds = odds.flat_map(|(i, j, k)| [(-i, j, k), (i, -j, k), (i, j, -k), (-i, -j, -k)]);
-    let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
-    let rots: Vec<Rotation> = evens
-        .chain(odds)
-        .map(|(i, j, k)| {
-            fn to_signed_axis(i: i8) -> SignedAxis {
-                match i {
-                    -1 => SignedAxis::NegX,
-                    -2 => SignedAxis::NegY,
-                    -3 => SignedAxis::NegZ,
-                    1 => SignedAxis::PosX,
-                    2 => SignedAxis::PosY,
-                    3 => SignedAxis::PosZ,
-                    _ => panic!("Not expected: {i}"),
-                }
-            }
-            Rotation(to_signed_axis(i), to_signed_axis(j), to_signed_axis(k))
-        })
-        .collect();
+    // evens
+    // //     println!("{i} -> :{even:?}");
+    // // }
 
-    // for (i, even) in new_rots.iter().enumerate() {
-    //     println!("{i} -> :{even:?}");
-    // }
-
-    let new_rots: HashSet<&Rotation> = rots.iter().collect();
-    let old_rots: HashSet<&Rotation> = ROTATIONS.iter().collect();
-    println!("equal: {}", new_rots == old_rots);
+    // let new_rots: HashSet<&Rotation> = rots.iter().collect();
+    // let old_rots: HashSet<&Rotation> = ROTATIONS.iter().collect();
+    // println!("equal: {}", new_rots == old_rots);
 }
 
 fn solve_19a(scanners: &[Scanner]) -> usize {
@@ -112,9 +90,10 @@ fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
-    for rot in ROTATIONS.iter() {
+    for rot in Rotation::all_right_handed_rotations() {
+        // for rot in ROTATIONS.iter() {
         // TODO: rename to scanner2
-        let scanner2_rot: Scanner = scanner2.rotate(rot);
+        let scanner2_rot: Scanner = scanner2.rotate(&rot);
 
         let mut translations: HashMap<Translation, usize> = HashMap::new();
         for (beacon1, beacon2) in iproduct!(scanner1.0.iter(), scanner2_rot.0.iter()) {
@@ -209,6 +188,27 @@ impl Rotation {
         };
         Beacon(coord(self.0), coord(self.1), coord(self.2))
     }
+
+    fn all_right_handed_rotations() -> impl Iterator<Item = Rotation> {
+        let evens = [(1, 2, 3), (2, 3, 1), (3, 1, 2)].into_iter();
+        let odds = [(2, 1, 3), (1, 3, 2), (3, 2, 1)].into_iter();
+        let odds = odds.flat_map(|(i, j, k)| [(-i, j, k), (i, -j, k), (i, j, -k), (-i, -j, -k)]);
+        let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
+        evens.chain(odds).map(|(i, j, k)| {
+            fn to_signed_axis(i: i8) -> SignedAxis {
+                match i {
+                    -1 => SignedAxis::NegX,
+                    -2 => SignedAxis::NegY,
+                    -3 => SignedAxis::NegZ,
+                    1 => SignedAxis::PosX,
+                    2 => SignedAxis::PosY,
+                    3 => SignedAxis::PosZ,
+                    _ => panic!("Not expected: {i}"),
+                }
+            }
+            Rotation(to_signed_axis(i), to_signed_axis(j), to_signed_axis(k))
+        })
+    }
 }
 
 impl Debug for Rotation {
@@ -219,34 +219,6 @@ impl Debug for Rotation {
         ))
     }
 }
-
-/// All right handed rotations.
-const ROTATIONS: [Rotation; 24] = [
-    Rotation(SignedAxis::PosX, SignedAxis::PosY, SignedAxis::PosZ),
-    Rotation(SignedAxis::NegX, SignedAxis::NegY, SignedAxis::PosZ),
-    Rotation(SignedAxis::NegX, SignedAxis::PosY, SignedAxis::NegZ),
-    Rotation(SignedAxis::PosX, SignedAxis::NegY, SignedAxis::NegZ),
-    Rotation(SignedAxis::NegX, SignedAxis::PosZ, SignedAxis::PosY),
-    Rotation(SignedAxis::PosX, SignedAxis::NegZ, SignedAxis::PosY),
-    Rotation(SignedAxis::PosX, SignedAxis::PosZ, SignedAxis::NegY),
-    Rotation(SignedAxis::NegX, SignedAxis::NegZ, SignedAxis::NegY),
-    Rotation(SignedAxis::NegY, SignedAxis::PosX, SignedAxis::PosZ),
-    Rotation(SignedAxis::PosY, SignedAxis::NegX, SignedAxis::PosZ),
-    Rotation(SignedAxis::PosY, SignedAxis::PosX, SignedAxis::NegZ),
-    Rotation(SignedAxis::NegY, SignedAxis::NegX, SignedAxis::NegZ),
-    Rotation(SignedAxis::PosY, SignedAxis::PosZ, SignedAxis::PosX),
-    Rotation(SignedAxis::NegY, SignedAxis::NegZ, SignedAxis::PosX),
-    Rotation(SignedAxis::NegY, SignedAxis::PosZ, SignedAxis::NegX),
-    Rotation(SignedAxis::PosY, SignedAxis::NegZ, SignedAxis::NegX),
-    Rotation(SignedAxis::PosZ, SignedAxis::PosX, SignedAxis::PosY),
-    Rotation(SignedAxis::NegZ, SignedAxis::NegX, SignedAxis::PosY),
-    Rotation(SignedAxis::NegZ, SignedAxis::PosX, SignedAxis::NegY),
-    Rotation(SignedAxis::PosZ, SignedAxis::NegX, SignedAxis::NegY),
-    Rotation(SignedAxis::NegZ, SignedAxis::PosY, SignedAxis::PosX),
-    Rotation(SignedAxis::PosZ, SignedAxis::NegY, SignedAxis::PosX),
-    Rotation(SignedAxis::PosZ, SignedAxis::PosY, SignedAxis::NegX),
-    Rotation(SignedAxis::NegZ, SignedAxis::NegY, SignedAxis::NegX),
-];
 
 fn parse_beacon(s: &str) -> Scanner {
     let (_, s) = s.split_once("\n").unwrap();
