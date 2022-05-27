@@ -7,13 +7,35 @@ use std::mem;
 use std::ops::{Add, Sub};
 
 fn main() {
-    // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
-    let scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
+    // // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
+    // let scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
 
-    let scanners = align_all(scanners);
+    // let scanners = align_all(scanners);
 
-    println!("19a: {} (362)", solve_19a(&scanners));
-    println!("19b: {} (12204)", solve_19b(&scanners));
+    // println!("19a: {} (362)", solve_19a(&scanners));
+    // println!("19b: {} (12204)", solve_19b(&scanners));
+    //
+    for (i, rot) in ROTATIONS.iter().enumerate() {
+        println!("{i}: {rot:?}");
+    }
+
+    // // even permutation
+    // 0: Rot(x, y, z)
+    // 12: Rot(y, z, x)
+    // : Rot(z, x, y)
+
+    // // odd permutations
+    // Rot(-x, z, y)
+    // 8: Rot(-y, x, z)
+    // Rot(-z, y, x)
+
+    let evens = [(1, 2, 3), (2, 3, 1), (3, 1, 2)].into_iter();
+    let odds = [(2, 1, 3), (1, 3, 2), (3, 2, 1)].into_iter();
+    let evens = evens.flat_map(|(i, j, k)| [(i, j, k), (i, -j, -k), (-i, j, -k), (-i, -j, k)]);
+    let odds = odds.flat_map(|(i, j, k)| [(-i, j, k), (i, -j, k), (i, j, -k), (-i, -j, -k)]);
+    for (i, even) in evens.chain(odds).enumerate() {
+        println!("{i} -> {even:?}");
+    }
 }
 
 fn solve_19a(scanners: &[Scanner]) -> usize {
@@ -47,24 +69,13 @@ fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
     let mut solved = Vec::new(); // we have checked these against all others
     let mut processing = scanners; // we need to check these
 
-    println!("just starting");
-    println!("solved: {}", solved.len());
-    println!("processing: {}", processing.len());
-    println!("unsolved: {}\n", unsolved.len());
-
     while let Some(scanner1) = processing.pop() {
         let mut still_unsolved = Vec::new();
         while let Some(scanner2) = unsolved.pop() {
-            println!("Solving scanner with {} beacons.", scanner2.0.len());
             match align(&scanner1, scanner2) {
                 Ok(scanner2) => processing.push(scanner2),
                 Err(scanner2) => still_unsolved.push(scanner2),
             }
-
-            println!("finished inter while");
-            println!("solved: {}", solved.len());
-            println!("processing: {}", processing.len());
-            println!("unsolved: {}\n", unsolved.len());
         }
         mem::swap(&mut unsolved, &mut still_unsolved);
         solved.push(scanner1);
@@ -73,56 +84,24 @@ fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
             n_scanners,
             "Lost track of a beacon."
         );
-
-        println!("finished outer while");
-        println!("solved: {}", solved.len());
-        println!("processing: {}", processing.len());
-        println!("unsolved: {}\n", unsolved.len());
     }
-
-    println!("all done");
-    println!("solved: {}", solved.len());
-    println!("processing: {}", processing.len());
-    println!("unsolved: {}\n", unsolved.len());
-
     solved
 }
 
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
     for rot in ROTATIONS.iter() {
-        println!("testing rotation: {:?}", rot);
-
         // TODO: rename to scanner2
         let scanner2_rot: Scanner = scanner2.rotate(rot);
 
         let mut translations: HashMap<Translation, usize> = HashMap::new();
         for (beacon1, beacon2) in iproduct!(scanner1.0.iter(), scanner2_rot.0.iter()) {
             let translation: Translation = beacon1 - beacon2;
-            *translations.entry(translation).or_default() += 1;
+            match translations.entry(translation.clone()).or_default() {
+                &mut 11 => return Ok(scanner2_rot.translate(&translation)),
+                n_translations => *n_translations += 1,
+            }
         }
-        println!("found {} translations", translations.len());
-        println!("max entries: {:?}", translations.values().max());
-        println!("min entries: {:?}", translations.values().min());
-        println!();
-
-        let successful_translations: Vec<Translation> = translations
-            .into_iter()
-            .filter_map(|(translation, n_translations)| (n_translations >= 12).then(|| translation))
-            .collect();
-
-        let translation: &Translation = match successful_translations.len() {
-            0 => continue,
-            1 => successful_translations.get(0).unwrap(),
-            n => panic!("Too many successful translations for {rot:?}: {n}"),
-        };
-        return Ok(Scanner(
-            scanner2_rot
-                .0
-                .iter()
-                .map(|beacon| beacon + translation)
-                .collect(),
-        ));
     }
     Err(scanner2)
 }
@@ -158,9 +137,14 @@ impl Scanner {
     fn rotate(&self, rot: &Rotation) -> Scanner {
         Scanner(self.0.iter().map(|beacon| rot.apply(beacon)).collect())
     }
+
+    /// Tranlate all the beacons in a scanner.
+    fn translate(&self, translation: &Translation) -> Scanner {
+        Scanner(self.0.iter().map(|beacon| beacon + translation).collect())
+    }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Translation(i64, i64, i64);
 
 #[derive(Clone, Copy)]
