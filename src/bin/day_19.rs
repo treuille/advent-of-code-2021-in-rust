@@ -68,15 +68,12 @@ fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
     for rot in all_right_handed_rotations() {
-        // for rot in ROTATIONS.iter() {
-        // TODO: rename to scanner2
-        let scanner2_rot: Scanner = scanner2.rotate(&rot);
-
+        let rotated_scanner2 = scanner2.rotate(&rot);
         let mut translations: HashMap<Translation, usize> = HashMap::new();
-        for (beacon1, beacon2) in iproduct!(scanner1.0.iter(), scanner2_rot.0.iter()) {
+        for (beacon1, beacon2) in iproduct!(scanner1.0.iter(), rotated_scanner2.0.iter()) {
             let translation: Translation = beacon1 - beacon2;
             match translations.entry(translation.clone()).or_default() {
-                &mut 11 => return Ok(scanner2_rot.translate(&translation)),
+                &mut 11 => return Ok(rotated_scanner2.translate(&translation)),
                 n_translations => *n_translations += 1,
             }
         }
