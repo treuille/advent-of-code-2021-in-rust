@@ -2,14 +2,10 @@ use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
 use regex::Regex;
 use std::collections::HashMap;
-use std::mem;
-use std::ops::{Add, Sub};
 
 fn main() {
-    // let scanners = read_input(include_str!("../../puzzle_inputs/day_19_test.txt"));
-    let scanners = read_input(include_str!("../../puzzle_inputs/day_19.txt"));
-
-    let scanners = align_all(scanners);
+    let input = include_str!("../../puzzle_inputs/day_19.txt");
+    let scanners = align_all(parse_input(input));
 
     println!("19a: {} (362)", solve_19a(&scanners));
     println!("19b: {} (12204)", solve_19b(&scanners));
@@ -17,50 +13,34 @@ fn main() {
 
 fn solve_19a(scanners: &[Scanner]) -> usize {
     let marker_beacons = scanners.len();
-    let all_beacons = scanners
-        .iter()
-        .flat_map(|scanner| scanner.0.iter())
-        .unique()
-        .count();
+    let all_beacons = scanners.iter().flatten().unique().count();
     all_beacons - marker_beacons
 }
 
 fn solve_19b(scanners: &[Scanner]) -> i64 {
-    let marker_beacons: Vec<&Beacon> = scanners
-        .iter()
-        .map(|scanner| scanner.0.first().unwrap())
-        .collect();
-    iproduct!(marker_beacons.iter(), marker_beacons.iter())
-        .map(|(&marker1, &marker2)| {
-            let t = marker2 - marker1;
-            t.0.abs() + t.1.abs() + t.2.abs()
-        })
-        .max()
-        .unwrap()
+    let marker_beacons: Vec<Beacon> = scanners.iter().map(|scanner| scanner[0]).collect();
+    let manhattan_dist = |(beacon1, beacon2): (&Beacon, &Beacon)| -> i64 {
+        let t = subtract(beacon1, beacon2);
+        t.0.abs() + t.1.abs() + t.2.abs()
+    };
+    let marker_pairs = iproduct!(marker_beacons.iter(), marker_beacons.iter());
+    marker_pairs.map(manhattan_dist).max().unwrap()
 }
 
 /// Align all the scanners to scanner[0], returning the result.
 fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
-    let n_scanners = scanners.len();
-    let mut unsolved = scanners.split_off(1); // we need to connect these
     let mut solved = Vec::new(); // we have checked these against all others
+    let mut unsolved = scanners.split_off(1); // we need to connect these
     let mut processing = scanners; // we need to check these
 
     while let Some(scanner1) = processing.pop() {
-        let mut still_unsolved = Vec::new();
-        while let Some(scanner2) = unsolved.pop() {
-            match align(&scanner1, scanner2) {
-                Ok(scanner2) => processing.push(scanner2),
-                Err(scanner2) => still_unsolved.push(scanner2),
-            }
-        }
-        mem::swap(&mut unsolved, &mut still_unsolved);
+        let (aligned, still_unsolved): (Vec<Scanner>, Vec<Scanner>) = unsolved
+            .into_iter()
+            .map(|scanner2| align(&scanner1, scanner2))
+            .partition_result();
+        processing.extend(aligned);
+        unsolved = still_unsolved;
         solved.push(scanner1);
-        assert_eq!(
-            solved.len() + processing.len() + unsolved.len(),
-            n_scanners,
-            "Lost track of a beacon."
-        );
     }
     solved
 }
@@ -68,12 +48,12 @@ fn align_all(mut scanners: Vec<Scanner>) -> Vec<Scanner> {
 /// Ok(scanner2) if they can be aligned, Err(scanner2) otherwise.
 fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
     for rot in all_right_handed_rotations() {
-        let rotated_scanner2 = scanner2.rotate(&rot);
+        let rotated_scanner2 = rotate(&scanner2, &rot);
         let mut translations: HashMap<Translation, usize> = HashMap::new();
-        for (beacon1, beacon2) in iproduct!(scanner1.0.iter(), rotated_scanner2.0.iter()) {
-            let translation: Translation = beacon1 - beacon2;
-            match translations.entry(translation.clone()).or_default() {
-                &mut 11 => return Ok(rotated_scanner2.translate(&translation)),
+        for (b1, b2) in iproduct!(scanner1.iter(), rotated_scanner2.iter()) {
+            let translation: Translation = subtract(b1, b2);
+            match translations.entry(translation).or_default() {
+                &mut 11 => return Ok(translate(&rotated_scanner2, &translation)),
                 n_translations => *n_translations += 1,
             }
         }
@@ -81,59 +61,43 @@ fn align(scanner1: &Scanner, scanner2: Scanner) -> Result<Scanner, Scanner> {
     Err(scanner2)
 }
 
-/// A becon emitting informaton.
-#[derive(Debug, PartialEq, Eq, Hash)]
-struct Beacon(i64, i64, i64);
+/// A beacon emitting its location.
+type Beacon = (i64, i64, i64);
 
-/// Adding a Translation to a Beacon yields another Beacon
-impl Add<&Translation> for &Beacon {
-    type Output = Beacon;
+/// A vector between two beacons.
+type Translation = (i64, i64, i64);
 
-    fn add(self, rhs: &Translation) -> Self::Output {
-        Beacon(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
-    }
-}
-
-/// Subtraction two Beacon gives a Translation.
-impl Sub for &Beacon {
-    type Output = Translation;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Translation(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
-    }
-}
-
-/// A set of detected beacons.
-#[derive(Debug)]
-struct Scanner(Vec<Beacon>);
-
-impl Scanner {
-    /// Rotate all the beacons in a scanner.
-    fn rotate(&self, rot: &Rotation) -> Scanner {
-        let coord = |b: &Beacon, axis: i8| match axis {
-            -1 => -b.0,
-            -2 => -b.1,
-            -3 => -b.2,
-            1 => b.0,
-            2 => b.1,
-            3 => b.2,
-            _ => panic!("Unexpected axis in rotation: {axis}"),
-        };
-        let rotate = |b: &Beacon| Beacon(coord(b, rot.0), coord(b, rot.1), coord(b, rot.2));
-        Scanner(self.0.iter().map(rotate).collect())
-    }
-
-    /// Tranlate all the beacons in a scanner.
-    fn translate(&self, translation: &Translation) -> Scanner {
-        Scanner(self.0.iter().map(|beacon| beacon + translation).collect())
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-struct Translation(i64, i64, i64);
+/// A set of beacons as seen from a scanner.
+type Scanner = Vec<Beacon>;
 
 /// An axis-aligned rotation: -1=-x, 1=x, -2=-y, 2=y, -3=-z, 3=z
 type Rotation = (i8, i8, i8);
+
+/// Find the vector from one beacon to another
+fn subtract(b1: &Beacon, b2: &Beacon) -> Translation {
+    (b1.0 - b2.0, b1.1 - b2.1, b1.2 - b2.2)
+}
+
+/// Rotate all the beacons in a scanner.
+fn rotate(scanner: &Scanner, rot: &Rotation) -> Scanner {
+    let coord = |b: &Beacon, axis: i8| match axis {
+        -1 => -b.0,
+        -2 => -b.1,
+        -3 => -b.2,
+        1 => b.0,
+        2 => b.1,
+        3 => b.2,
+        _ => panic!("Unexpected axis in rotation: {axis}"),
+    };
+    let rotate = |b: &Beacon| (coord(b, rot.0), coord(b, rot.1), coord(b, rot.2));
+    scanner.iter().map(rotate).collect()
+}
+
+/// Tranlate all the beacons in a scanner.
+fn translate(scanner: &Scanner, t: &Translation) -> Scanner {
+    let translate = |b: &Beacon| (b.0 + t.0, b.1 + t.1, b.2 + t.2);
+    scanner.iter().map(translate).collect()
+}
 
 /// An iterator over all 24 axis-aligned right-handed rotations
 fn all_right_handed_rotations() -> impl Iterator<Item = Rotation> {
@@ -144,15 +108,12 @@ fn all_right_handed_rotations() -> impl Iterator<Item = Rotation> {
     evens.chain(odds)
 }
 
-fn parse_beacon(s: &str) -> Scanner {
+fn parse_scanner(s: &str) -> Scanner {
     let (_, s) = s.split_once("\n").unwrap();
     let re = Regex::new(r"(\-?\d+),(\-?\d+),(\-?\d+)").unwrap();
-
-    let mut beacons = vec![Beacon(0, 0, 0)];
-    beacons.extend(parse_lines(&re, s).map(|(x, y, z)| Beacon(x, y, z)));
-    Scanner(beacons)
+    [(0, 0, 0)].into_iter().chain(parse_lines(&re, s)).collect()
 }
 
-fn read_input(input: &str) -> Vec<Scanner> {
-    input.split("\n\n").map(parse_beacon).collect()
+fn parse_input(input: &str) -> Vec<Scanner> {
+    input.split("\n\n").map(parse_scanner).collect()
 }
