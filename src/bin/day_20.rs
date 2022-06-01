@@ -62,7 +62,7 @@ fn enhance(image: &Image, lookup_table: &LookupTable) -> Image {
                         false => indx,
                         true => indx | 1 << (8 - i),
                     });
-            println!("{pt1:?} -> {indx}");
+            // println!("{pt1:?} -> {indx}");
             lookup_table[indx].then(|| pt1)
         })
         .collect()
@@ -74,10 +74,10 @@ fn neighbors(pt: impl Borrow<Pt>) -> impl Iterator<Item = Pt> {
 }
 
 fn print_image(image: &Image) {
-    let min_i = *image.iter().map(|(i, j)| i).min().unwrap();
-    let max_i = *image.iter().map(|(i, j)| i).max().unwrap();
-    let min_j = *image.iter().map(|(i, j)| j).min().unwrap();
-    let max_j = *image.iter().map(|(i, j)| j).max().unwrap();
+    let min_i = *image.iter().map(|(i, _)| i).min().unwrap();
+    let max_i = *image.iter().map(|(i, _)| i).max().unwrap();
+    let min_j = *image.iter().map(|(_, j)| j).min().unwrap();
+    let max_j = *image.iter().map(|(_, j)| j).max().unwrap();
     for j in min_j..=max_j {
         for i in min_i..=max_i {
             match image.contains(&(i, j)) {
@@ -87,6 +87,7 @@ fn print_image(image: &Image) {
         }
         println!();
     }
+    println!("({min_i}->{max_i})x({min_j}->{max_j}) : {}", image.len());
 }
 
 fn parse_image(image_str: &str) -> Image {
@@ -119,6 +120,7 @@ fn read_input(input: &str) -> (LookupTable, Image) {
         .enumerate()
         .filter_map(|(i, b)| b.then(|| i))
         .for_each(|i| lookup_table[i] = true);
+    // panic!("lookup_table_str.len(): {}", lookup_table_str.len());
 
     (lookup_table, parse_image(image_str))
 }
