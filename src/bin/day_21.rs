@@ -1,7 +1,15 @@
 fn main() {
     let s = State::new(4, 8);
-    // let mut s = State::new(1, 5);
+    let mut s = State::new(1, 5);
     // old_main(s);
+
+    // let mut sums: HashMap<usize, usize> = HashMap::new();
+    // for (i, j, k) in iproduct!(1..=3, 1..=3, 1..=3) {
+    //     *sums.entry(i + j + k).or_default() += 1;
+    // }
+    // let mut sums: Vec<(usize, usize)> = sums.into_iter().collect();
+    // sums.sort();
+    // println!("sums: {sums:?}");
 
     let [w1, w2] = s.wins_dirac();
     println!("w1: {w1}");
@@ -39,15 +47,23 @@ impl State {
         self.rolls += 3;
     }
 
-    fn step_dirac(&self) -> [Self; 3] {
-        let mut selfs = [self.clone(), self.clone(), self.clone()];
+    fn step_dirac(&self) -> impl Iterator<Item = (Self, usize)> + '_ {
+        const SUM_FREQUENCIES: [(usize, usize); 7] =
+            [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
 
-        #[allow(clippy::needless_range_loop)]
-        for i in 0..3 {
-            selfs[i].step(i + 1)
-        }
+        SUM_FREQUENCIES.iter().map(|(roll, frequency)| {
+            let mut child = self.clone();
+            child.step(*roll);
+            (child, *frequency)
+        })
+        // let mut selfs = [self.clone(), self.clone(), self.clone()];
 
-        selfs
+        // #[allow(clippy::needless_range_loop)]
+        // for i in 0..3 {
+        //     selfs[i].step(i + 1)
+        // }
+
+        // selfs
     }
 
     fn step(&mut self, roll: usize) {
@@ -69,10 +85,12 @@ impl State {
             }
             _ => self
                 .step_dirac()
-                .into_iter()
-                .fold([0, 0], |[s1, s2], next_self| {
-                    let [t1, t2] = next_self.wins_dirac();
-                    [s1 + t1, s2 + t2]
+                .fold([0, 0], |[wins_1, wins_2], (child, frequency)| {
+                    let [child_wins_1, child_wins_2] = child.wins_dirac();
+                    [
+                        wins_1 + child_wins_1 * frequency,
+                        wins_2 + child_wins_2 * frequency,
+                    ]
                 }),
         }
     }
@@ -89,11 +107,3 @@ fn old_main(mut s: State) {
     println!("rolls: {}", s.rolls);
     println!("answer: {}", loser_score * s.rolls);
 }
-
-// fn get_die() -> impl Iterator<Item = usize> {
-//     let mut state = 99;
-//     iter::repeat_with(move || {
-//         state = (state + 1) % 100;
-//         state + 1
-//     })
-// }
