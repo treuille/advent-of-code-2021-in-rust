@@ -16,7 +16,9 @@ fn main() {
     println!("w2: {w2}");
 }
 
-#[derive(Hash, Clone)]
+
+
+#[derive(Clone)]
 struct State {
     pos: [usize; 2],
     score: [usize; 2],
