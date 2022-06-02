@@ -1,13 +1,13 @@
 use cached::proc_macro::cached;
 
 fn main() {
-    let state = State::new(1, 5);
+    let state = GameState::new(1, 5);
 
     println!("21a: {} (432450)", solve_21a(state.clone()));
     println!("21b: {} (138508043837521)", solve_21b(state.clone()));
 }
 
-fn solve_21a(mut state: State) -> usize {
+fn solve_21a(mut state: GameState) -> usize {
     let mut die: usize = 99;
     let mut rolls: usize = 0;
 
@@ -28,13 +28,13 @@ fn solve_21a(mut state: State) -> usize {
     loser_score * rolls
 }
 
-fn solve_21b(state: State) -> usize {
+fn solve_21b(state: GameState) -> usize {
     let [w1, w2] = wins_dirac(state);
     usize::max(w1, w2)
 }
 
 #[cached]
-fn wins_dirac(state: State) -> [usize; 2] {
+fn wins_dirac(state: GameState) -> [usize; 2] {
     match state.score {
         [score_1, _] if score_1 >= 21 => [1, 0],
         [_, score_2] if score_2 >= 21 => [0, 1],
@@ -48,13 +48,13 @@ fn wins_dirac(state: State) -> [usize; 2] {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-struct State {
+struct GameState {
     pos: [usize; 2],
     score: [usize; 2],
     player: usize,
 }
 
-impl State {
+impl GameState {
     fn new(player_1_pos: usize, player_2_pos: usize) -> Self {
         Self {
             pos: [player_1_pos - 1, player_2_pos - 1],
@@ -72,6 +72,7 @@ impl State {
     }
 
     fn step_dirac(&self) -> impl Iterator<Item = (Self, usize)> + '_ {
+        // All the possible sums of thrice rolling a 3-sided die, and their frequencies
         const SUMS: [(usize, usize); 7] = [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
         SUMS.iter()
             .map(|&(die_sum, frequency)| (self.step(die_sum), frequency))
