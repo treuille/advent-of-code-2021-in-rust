@@ -22,13 +22,13 @@ const DEMO_INPUT: &str = "
 ";
 
 fn main() {
-    // let input = include_str!("../../puzzle_inputs/day_20.txt").trim();
-    let input = DEMO_INPUT.trim();
+    let input = include_str!("../../puzzle_inputs/day_20.txt").trim();
+    // let input = DEMO_INPUT.trim();
     let (lookup_table, image) = read_input(input);
     print_image(&image.view());
     println!();
 
-    let runs = 2;
+    let runs = 50;
     let mut image = grow(image, runs);
     print_image(&image.view());
     println!();
@@ -39,6 +39,9 @@ fn main() {
         print_image(&image.view());
         println!();
     }
+    //
+    let answer = image.iter().filter(|&&x| x).count();
+    println!("answer: {answer}");
     // let image = enhance(&image, &lookup_table);
 
     // let image = enhance(&image, &lookup_table);
