@@ -19,10 +19,9 @@ fn main() {
     println!("w2: {w2}");
 }
 
-type DiracWinsKey = ([usize; 2], [usize; 2], usize);
-type DiracWins = HashMap<DiracWinsKey, [usize; 2]>;
+type DiracWins = HashMap<State, [usize; 2]>;
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 struct State {
     pos: [usize; 2],
     score: [usize; 2],
@@ -90,19 +89,17 @@ impl State {
                 [0, 1]
             }
             _ => {
-                let key = (self.pos, self.score, self.player);
-
                 #[allow(clippy::map_entry)]
-                if !wins_table.contains_key(&key) {
+                if !wins_table.contains_key(self) {
                     let answer =
                         self.step_dirac()
                             .fold([0, 0], |[wins_1, wins_2], (child, frequency)| {
                                 let [child_w1, child_w2] = child.wins_dirac(wins_table);
                                 [wins_1 + child_w1 * frequency, wins_2 + child_w2 * frequency]
                             });
-                    wins_table.insert(key, answer);
+                    wins_table.insert(self.clone(), answer);
                 }
-                wins_table[&key]
+                wins_table[self]
             }
         }
     }
