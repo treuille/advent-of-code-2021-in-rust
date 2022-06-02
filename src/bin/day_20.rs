@@ -1,68 +1,23 @@
-// use itertools::{iproduct, Itertools};
 use ndarray::prelude::*;
 use ndarray::Zip;
-// use std::borrow::Borrow;
-// use std::collections::HashSet;
-
-#[allow(dead_code)]
-const DEMO_INPUT: &str = "
-..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..##
-#..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###
-.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#.
-.#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#.....
-.#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#..
-...####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.....
-..##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
-
-#..#.
-#....
-##..#
-..#..
-..###
-";
 
 fn main() {
     let input = include_str!("../../puzzle_inputs/day_20.txt").trim();
-    // let input = DEMO_INPUT.trim();
-    let (lookup_table, image) = read_input(input);
-    print_image(&image.view());
-    println!();
+    let (lookup_table, image) = parse_input(input);
+    let mut image = grow(image, 50);
 
-    let runs = 50;
-    let mut image = grow(image, runs);
-    print_image(&image.view());
-    println!();
-
-    for i in 0..runs {
+    for i in 0..50 {
         image = enhance(image, &lookup_table);
-        println!("iteration: {i}");
-        print_image(&image.view());
-        println!();
+        if i == 1 {
+            println!("20a: {} (5306)", lit_pixels(&image));
+        } else if i == 49 {
+            println!("20b: {} (17497)", lit_pixels(&image));
+        }
     }
-    //
-    let answer = image.iter().filter(|&&x| x).count();
-    println!("answer: {answer}");
-    // let image = enhance(&image, &lookup_table);
-
-    // let image = enhance(&image, &lookup_table);
-    // print_image(&image);
-    // println!();
-
-    // println!("len: {}", image.len());
 }
 
-// fn solve_XXa() -> usize {
-//     123
-// }
-
-// fn solve_XXb() -> usize {
-//     456
-// }
-
-// type Pt = (i64, i64);
-// type Pt = (usize, usize);
 type Image = Array2<bool>;
-type LookupTable = [bool; 512];
+type LookupTable = Array1<bool>;
 
 fn grow(image: Image, runs: usize) -> Image {
     let (w, h) = image.dim();
@@ -73,76 +28,34 @@ fn grow(image: Image, runs: usize) -> Image {
 }
 
 fn enhance(image: Image, lookup_table: &LookupTable) -> Image {
-    // image.windows((3, 3)).for_each(|window| {
-    //     println!("{:?}", window);
-    // });
     Zip::from(image.windows((3, 3))).map_collect(|window| {
-        let indx = window.iter().enumerate().fold(0, |indx, (i, x)| match x {
-            false => indx,
-            true => indx | 1 << (8 - i),
-        });
+        let to_binary = |indx, (place, &digit)| indx | (digit as usize) << (8 - place);
+        let indx = window.iter().enumerate().fold(0, to_binary);
         lookup_table[indx]
     })
-    // todo!("ehance {:?}", x.dim());
-    // image
-    //     .iter()
-    //     .flat_map(neighbors)
-    //     .unique()
-    // , lookup_table: &LookupTable   //     .flat_map(|pt1| {
-    //         let indx =
-    //             neighbors(pt1)
-    //                 .enumerate()
-    //                 .fold(0, |indx, (i, pt2)| match image.contains(&pt2) {
-    //                     false => indx,
-    //                     true => indx | 1 << (8 - i),
-    //                 });
-    //         // println!("{pt1:?} -> {indx}");
-    //         lookup_table[indx].then(|| pt1)
-    //     })
-    //     .collect()
 }
 
-// fn neighbors(pt: impl Borrow<Pt>) -> impl Iterator<Item = Pt> {
-//     let (i, j) = pt.borrow();
-//     iproduct!((j - 1)..=(j + 1), (i - 1)..=(i + 1)).map(|(j, i)| (i, j))
-// }
-
-fn print_image(image: &ArrayView2<bool>) {
-    for row in image.rows() {
-        let row_chars = row.iter().map(|x| match x {
-            false => '.',
-            true => '#',
-        });
-        println!("{}", row_chars.collect::<String>());
-    }
-    println!("{:?}", image.dim());
+fn lit_pixels(image: &Image) -> usize {
+    image.iter().filter(|&&x| x).count()
 }
 
-fn parse_grid(input: &str) -> Image {
-    let mut lines = input.lines().peekable();
-    let w = lines.peek().unwrap().len();
-    let array: Array1<bool> =
-        Array::from_iter(lines.flat_map(|line| line.chars().map(|c| c == '#')));
-    let h = array.len() / w;
-    array.into_shape((w, h)).unwrap()
+fn parse_array(lines: impl Iterator<Item = &'static str>) -> Array1<bool> {
+    let is_lit = |c| c == '#';
+    lines.flat_map(|line| line.chars()).map(is_lit).collect()
 }
 
-/// Read the input file and turn it into an Array2<u8>
-fn read_input(input: &str) -> (LookupTable, Image) {
+fn parse_input(input: &'static str) -> (LookupTable, Image) {
     let (lookup_table_str, image_str) = input.split_once("\n\n").unwrap();
 
     // Parse the lookup table
-    let mut lookup_table = [false; 512];
-    lookup_table_str
-        .chars()
-        .filter_map(|c| match c {
-            '.' => Some(false),
-            '#' => Some(true),
-            _ => None,
-        })
-        .enumerate()
-        .filter_map(|(i, b)| b.then(|| i))
-        .for_each(|i| lookup_table[i] = true);
+    let lookup_table = parse_array(lookup_table_str.lines());
 
-    (lookup_table, parse_grid(image_str))
+    // Parse the image
+    let mut lines = image_str.lines().peekable();
+    let w = lines.peek().unwrap().len();
+    let image = parse_array(lines);
+    let h = image.len() / w;
+    let image = image.into_shape((w, h)).unwrap();
+
+    (lookup_table, image)
 }
