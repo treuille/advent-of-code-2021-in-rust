@@ -58,7 +58,7 @@ impl GameState {
         next
     }
 
-    /// Compute all possible future states and their frequencies.
+    /// Compute all possible future Dirac-states and their frequencies.
     fn step_dirac(&self) -> impl Iterator<Item = (Self, usize)> + '_ {
         // All the possible sums of thrice rolling a 3-sided die, and their frequencies
         const SUMS: [(usize, usize); 7] = [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
