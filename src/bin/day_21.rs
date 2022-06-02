@@ -29,22 +29,8 @@ fn solve_21a(mut state: GameState) -> usize {
 }
 
 fn solve_21b(state: GameState) -> usize {
-    let [w1, w2] = wins_dirac(state);
-    usize::max(w1, w2)
-}
-
-#[cached]
-fn wins_dirac(state: GameState) -> [usize; 2] {
-    match state.score {
-        [score_1, _] if score_1 >= 21 => [1, 0],
-        [_, score_2] if score_2 >= 21 => [0, 1],
-        _ => state
-            .step_dirac()
-            .fold([0, 0], |[wins_1, wins_2], (child, frequency)| {
-                let [child_w1, child_w2] = wins_dirac(child);
-                [wins_1 + child_w1 * frequency, wins_2 + child_w2 * frequency]
-            }),
-    }
+    let [player_1_wins, player_2_wins] = dirac_wins(state);
+    usize::max(player_1_wins, player_2_wins)
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -63,18 +49,35 @@ impl GameState {
         }
     }
 
-    fn step(&self, roll: usize) -> Self {
+    /// Advance the game state after summing three dice rolls.
+    fn step(&self, die_sum: usize) -> Self {
         let mut next = self.clone();
-        next.pos[self.player] = (self.pos[self.player] + roll) % 10;
+        next.pos[self.player] = (self.pos[self.player] + die_sum) % 10;
         next.score[self.player] += next.pos[self.player] + 1;
         next.player = (self.player + 1) % 2;
         next
     }
 
+    /// Compute all possible future states and their frequencies.
     fn step_dirac(&self) -> impl Iterator<Item = (Self, usize)> + '_ {
         // All the possible sums of thrice rolling a 3-sided die, and their frequencies
         const SUMS: [(usize, usize); 7] = [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
         SUMS.iter()
             .map(|&(die_sum, frequency)| (self.step(die_sum), frequency))
+    }
+}
+
+/// Find in how many Dirac-die universes each player will win from this start state.
+#[cached]
+fn dirac_wins(state: GameState) -> [usize; 2] {
+    match state.score {
+        [score_1, _] if score_1 >= 21 => [1, 0],
+        [_, score_2] if score_2 >= 21 => [0, 1],
+        _ => state
+            .step_dirac()
+            .fold([0, 0], |[wins_1, wins_2], (child, frequency)| {
+                let [child_w1, child_w2] = dirac_wins(child);
+                [wins_1 + child_w1 * frequency, wins_2 + child_w2 * frequency]
+            }),
     }
 }
