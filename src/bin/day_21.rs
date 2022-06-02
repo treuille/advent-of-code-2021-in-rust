@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 fn main() {
-    let s = State::new(4, 8);
-    let mut s = State::new(1, 5);
+    // let s = State::new(4, 8);
+    let s = State::new(1, 5);
     // old_main(s);
 
     // let mut sums: HashMap<usize, usize> = HashMap::new();
@@ -11,12 +13,14 @@ fn main() {
     // sums.sort();
     // println!("sums: {sums:?}");
 
-    let [w1, w2] = s.wins_dirac();
+    let mut wins_table: DiracWins = DiracWins::new();
+    let [w1, w2] = s.wins_dirac(&mut wins_table);
     println!("w1: {w1}");
     println!("w2: {w2}");
 }
 
-
+type DiracWinsKey = ([usize; 2], [usize; 2], usize);
+type DiracWins = HashMap<DiracWinsKey, [usize; 2]>;
 
 #[derive(Clone)]
 struct State {
@@ -53,10 +57,10 @@ impl State {
         const SUM_FREQUENCIES: [(usize, usize); 7] =
             [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
 
-        SUM_FREQUENCIES.iter().map(|(roll, frequency)| {
+        SUM_FREQUENCIES.iter().map(|&(roll, frequency)| {
             let mut child = self.clone();
-            child.step(*roll);
-            (child, *frequency)
+            child.step(roll);
+            (child, frequency)
         })
         // let mut selfs = [self.clone(), self.clone(), self.clone()];
 
@@ -75,7 +79,7 @@ impl State {
     }
 
     /// From this starting position, in how many universes does each player win?
-    fn wins_dirac(&self) -> [usize; 2] {
+    fn wins_dirac(&self, wins_table: &mut DiracWins) -> [usize; 2] {
         match self.score {
             [score_1, _] if score_1 >= 21 => {
                 assert_eq!(self.player, 1);
@@ -85,15 +89,21 @@ impl State {
                 assert_eq!(self.player, 0);
                 [0, 1]
             }
-            _ => self
-                .step_dirac()
-                .fold([0, 0], |[wins_1, wins_2], (child, frequency)| {
-                    let [child_wins_1, child_wins_2] = child.wins_dirac();
-                    [
-                        wins_1 + child_wins_1 * frequency,
-                        wins_2 + child_wins_2 * frequency,
-                    ]
-                }),
+            _ => {
+                let key = (self.pos, self.score, self.player);
+
+                #[allow(clippy::map_entry)]
+                if !wins_table.contains_key(&key) {
+                    let answer =
+                        self.step_dirac()
+                            .fold([0, 0], |[wins_1, wins_2], (child, frequency)| {
+                                let [child_w1, child_w2] = child.wins_dirac(wins_table);
+                                [wins_1 + child_w1 * frequency, wins_2 + child_w2 * frequency]
+                            });
+                    wins_table.insert(key, answer);
+                }
+                wins_table[&key]
+            }
         }
     }
 }
