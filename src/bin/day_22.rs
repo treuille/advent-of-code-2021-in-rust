@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
 use aoc::parse_regex::parse_lines;
-use itertools::iproduct;
+use itertools::{iproduct, Itertools};
 use regex::Regex;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
 use std::ops::RangeInclusive;
 
@@ -41,10 +41,15 @@ on x=967..23432,y=45373..81175,z=27513..53682";
 // a: Cubes -> Remap -> Solve -> Count
 
 fn main() {
-    let mut grid: HashSet<Pt> = HashSet::new();
     // let clamp = |i| isize::max(-50, isize::min(50, i));
     let input = include_str!("../../puzzle_inputs/day_22.txt");
-    for cube in parse_input(input) {
+    let cubes = parse_input(input);
+    println!("answer: {}", solve_22a(&cubes));
+}
+
+fn solve_22a(cubes: &[Cube]) -> usize {
+    let mut grid: HashSet<Pt> = HashSet::new();
+    for cube in cubes {
         // let (mode, min_x, max_x, min_y, max_y, min_z, max_z): Row = row;
         // println!("mode: {mode}");
         // if let Some(Cube { xs, ys, zs }) =
@@ -65,7 +70,7 @@ fn main() {
         }
         println!();
     }
-    println!("answer: {}", grid.len());
+    grid.len()
 }
 
 type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
@@ -91,10 +96,10 @@ impl Cube {
         }
     }
 
-    fn clamp(self) -> Option<Self> {
-        let clamped_ranges: Vec<RangeInclusive<isize>> = [self.xs, self.ys, self.zs]
+    fn clamp(&self) -> Option<Self> {
+        let clamped_ranges: Vec<RangeInclusive<isize>> = [&self.xs, &self.ys, &self.zs]
             .into_iter()
-            .flat_map(|range| match range.into_inner() {
+            .flat_map(|range| match (*range.start(), *range.end()) {
                 (_, j) if j < -50 => None,
                 (i, j) if i < -50 && j <= 50 => Some(-50..=j),
                 (i, j) if i < -50 && j > 50 => Some(-50..=50),
@@ -112,6 +117,66 @@ impl Cube {
         })
     }
 }
+
+struct Remap {
+    xs: Vec<isize>,
+    ys: Vec<isize>,
+    zs: Vec<isize>,
+}
+
+impl Remap {
+    fn from_cubes(cubes: &[Cube]) -> (Self, Vec<Cube>) {
+        let mut xs: Vec<isize> = Vec::new();
+        let mut ys: Vec<isize> = Vec::new();
+        let mut zs: Vec<isize> = Vec::new();
+        for cube in cubes {
+            xs.push(*cube.xs.start());
+            ys.push(*cube.ys.start());
+            zs.push(*cube.zs.start());
+            xs.push(*cube.xs.end());
+            ys.push(*cube.ys.end());
+            zs.push(*cube.zs.end());
+        }
+        let xs: Vec<isize> = xs.iter().copied().unique().sorted().collect();
+        let ys: Vec<isize> = ys.iter().copied().unique().sorted().collect();
+        let zs: Vec<isize> = zs.iter().copied().unique().sorted().collect();
+        let x_map: HashMap<isize, usize> = xs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
+        let y_map: HashMap<isize, usize> = ys.iter().enumerate().map(|(k, &v)| (v, k)).collect();
+        let z_map: HashMap<isize, usize> = zs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
+        let remapped_cubes = cubes
+            .iter()
+            .map(|cube| Cube {
+                additive: cube.additive,
+                xs: (x_map[cube.xs.start()] as isize)..=(x_map[cube.xs.end()] as isize),
+                ys: (y_map[cube.ys.start()] as isize)..=(y_map[cube.ys.end()] as isize),
+                zs: (z_map[cube.zs.start()] as isize)..=(z_map[cube.zs.end()] as isize),
+            })
+            .collect();
+        (Remap { xs, ys, zs }, remapped_cubes)
+    }
+}
+
+// fn solve_XXa() -> usize {
+//     123
+// }
+
+// fn solve_XXb() -> usize {
+//     456
+// }
+
+// type Row<'a> = (&'a str, isize, isize);
+// type Row<'a> = (&'a str, isize, isize, isize, isize);
+
+// fn parse_input(input: &str) -> Vec<Cube> {
+//     let mut regex = String::from(r"(on|off)");
+//     regex += r" x=(\-?\d+)..(\-?\d+)";
+//     regex += r",y=(\-?\d+)..(\-?\d+)";
+//     regex += r",z=(\-?\d+)..(\-?\d+)";
+//     let re = Regex::new(regex.as_str()).unwrap();
+//     // regex += r" z=(\-?\d+)..(\-?\d+)";
+
+//     parse_lines(re, input).map(Cube::from_row).collect()
+// }
 
 // fn solve_XXa() -> usize {
 //     123
