@@ -70,7 +70,9 @@ pub mod parse_regex {
         T1: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (T1::from_str(captures.get(1).unwrap().as_str()),)
         }
     }
@@ -81,7 +83,9 @@ pub mod parse_regex {
         T2: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (
                 T1::from_str(captures.get(1).unwrap().as_str()),
                 T2::from_str(captures.get(2).unwrap().as_str()),
@@ -96,7 +100,9 @@ pub mod parse_regex {
         T3: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (
                 T1::from_str(captures.get(1).unwrap().as_str()),
                 T2::from_str(captures.get(2).unwrap().as_str()),
@@ -113,7 +119,9 @@ pub mod parse_regex {
         T4: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (
                 T1::from_str(captures.get(1).unwrap().as_str()),
                 T2::from_str(captures.get(2).unwrap().as_str()),
@@ -132,7 +140,9 @@ pub mod parse_regex {
         T5: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (
                 T1::from_str(captures.get(1).unwrap().as_str()),
                 T2::from_str(captures.get(2).unwrap().as_str()),
@@ -153,7 +163,9 @@ pub mod parse_regex {
         T6: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (
                 T1::from_str(captures.get(1).unwrap().as_str()),
                 T2::from_str(captures.get(2).unwrap().as_str()),
@@ -176,7 +188,9 @@ pub mod parse_regex {
         T7: FromStr<'a>,
     {
         fn parse(re: &Regex, s: &'a str) -> Self {
-            let captures = re.captures(s).unwrap();
+            let captures = re
+                .captures(s)
+                .unwrap_or_else(|| panic!("Can't parse: \"{s}\""));
             (
                 T1::from_str(captures.get(1).unwrap().as_str()),
                 T2::from_str(captures.get(2).unwrap().as_str()),
