@@ -13,7 +13,7 @@ where
     F: Fn(State, &str, isize) -> State,
 {
     let re = Regex::new(r"([a-z]+) (\d)").unwrap();
-    let (x, y, _) = parse_lines(&re, include_str!("../../puzzle_inputs/day_02.txt"))
+    let (x, y, _) = parse_lines(re, include_str!("../../puzzle_inputs/day_02.txt"))
         .fold((0, 0, 0), |state, (dir, dist)| advance(state, dir, dist));
     x * y
 }

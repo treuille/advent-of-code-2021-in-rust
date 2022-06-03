@@ -111,7 +111,7 @@ fn all_right_handed_rotations() -> impl Iterator<Item = Rotation> {
 fn parse_scanner(s: &str) -> Scanner {
     let (_, s) = s.split_once("\n").unwrap();
     let re = Regex::new(r"(\-?\d+),(\-?\d+),(\-?\d+)").unwrap();
-    [(0, 0, 0)].into_iter().chain(parse_lines(&re, s)).collect()
+    [(0, 0, 0)].into_iter().chain(parse_lines(re, s)).collect()
 }
 
 fn parse_input(input: &str) -> Vec<Scanner> {

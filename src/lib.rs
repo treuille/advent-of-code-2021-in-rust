@@ -10,7 +10,7 @@ pub mod parse_regex {
         T::parse(re, s)
     }
 
-    pub fn parse_lines<'a, T>(re: &'a Regex, s: &'a str) -> ParseLines<'a, T>
+    pub fn parse_lines<'a, T>(re: Regex, s: &'a str) -> ParseLines<'a, T>
     where
         T: FromRegex<'a>,
     {
@@ -63,6 +63,16 @@ pub mod parse_regex {
 
     pub trait FromRegex<'a> {
         fn parse(re: &Regex, s: &'a str) -> Self;
+    }
+
+    impl<'a, T1> FromRegex<'a> for (T1,)
+    where
+        T1: FromStr<'a>,
+    {
+        fn parse(re: &Regex, s: &'a str) -> Self {
+            let captures = re.captures(s).unwrap();
+            (T1::from_str(captures.get(1).unwrap().as_str()),)
+        }
     }
 
     impl<'a, T1, T2> FromRegex<'a> for (T1, T2)
@@ -183,7 +193,7 @@ pub mod parse_regex {
     where
         T: FromRegex<'a>,
     {
-        re: &'a Regex,
+        re: Regex,
         lines: Lines<'a>,
         _phantom: PhantomData<T>,
     }
@@ -195,7 +205,7 @@ pub mod parse_regex {
         type Item = T;
 
         fn next(&mut self) -> Option<T> {
-            self.lines.next().map(|line| T::parse(self.re, line))
+            self.lines.next().map(|line| T::parse(&self.re, line))
         }
     }
 }
@@ -242,7 +252,7 @@ mod tests {
         ";
 
         let re = Regex::new(r"([a-z]) => ([a-z])").unwrap();
-        let mut iter = parse_lines(&re, input);
+        let mut iter = parse_lines(re, input);
 
         assert_eq!(Some(('a', 'x')), iter.next());
         assert_eq!(Some(('b', 'y')), iter.next());

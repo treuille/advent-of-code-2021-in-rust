@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use aoc::parse_regex::parse_lines;
 use regex::Regex;
 use std::iter::Iterator;
@@ -33,6 +35,8 @@ on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
 on x=967..23432,y=45373..81175,z=27513..53682";
 
 fn main() {
+    parse_input(TEST_INPUT_1).for_each(|x| println!("{x:?}"));
+
     println!("Hello, world!");
 }
 
@@ -44,19 +48,16 @@ fn main() {
 //     456
 // }
 
-type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
+// type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
+type Row<'a> = (&'a str,);
 
-/// Read the input file and turn it into an Array2<u8>
-fn read_input(input: &str) -> Vec<Row> {
-    let mut regex = String::from(r"(on|off)");
-    regex += r" x=(\-?\d+)..(\-?\d+)";
-    regex += r" y=(\-?\d+)..(\-?\d+)";
-    regex += r" z=(\-?\d+)..(\-?\d+)";
+fn parse_input(input: &str) -> impl Iterator<Item = Row> {
+    let mut regex = String::from(r"([a-z]*)");
+    // regex += r" x=(\-?\d+)..(\-?\d+)";
+    // regex += r" y=(\-?\d+)..(\-?\d+)";
+    // regex += r" z=(\-?\d+)..(\-?\d+)";
     println!("regex: {}", regex);
 
     let re = Regex::new(regex.as_str()).unwrap();
-    parse_lines(&re, input).collect::<Vec<Row>>()
-    // include_str!("../../puzzle_inputs/day_XX.txt")
-    //     .lines()
-    //     .collect()
+    parse_lines(re, input)
 }
