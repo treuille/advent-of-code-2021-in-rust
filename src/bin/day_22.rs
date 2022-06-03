@@ -1,8 +1,11 @@
 #![allow(dead_code)]
 
 use aoc::parse_regex::parse_lines;
+use itertools::iproduct;
 use regex::Regex;
+use std::collections::HashSet;
 use std::iter::Iterator;
+use std::ops::RangeInclusive;
 
 const TEST_INPUT_1: &str = "
 on x=10..12,y=10..12,z=10..12
@@ -34,10 +37,55 @@ on x=-41..9,y=-7..43,z=-33..15
 on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
 on x=967..23432,y=45373..81175,z=27513..53682";
 
-fn main() {
-    parse_input(TEST_INPUT_1).for_each(|x| println!("{x:?}"));
+type Pt = (isize, isize, isize);
 
-    println!("Hello, world!");
+fn clamp(r: RangeInclusive<isize>) -> Option<RangeInclusive<isize>> {
+    match r.into_inner() {
+        (_, j) if j < -50 => None,
+        (i, j) if i < -50 && j <= 50 => Some(-50..=j),
+        (i, j) if i < -50 && j > 50 => Some(-50..=50),
+        (i, j) if i <= 50 && j <= 50 => Some(i..=j),
+        (i, j) if i <= 50 && j > 50 => Some(i..=50),
+        (i, _) if i > 50 => None,
+        (i, j) => unimplemented!("Impossible range: {i}..={j}"),
+    }
+}
+
+fn main() {
+    let mut grid: HashSet<Pt> = HashSet::new();
+    // let clamp = |i| isize::max(-50, isize::min(50, i));
+    let input = include_str!("../../puzzle_inputs/day_22.txt");
+    for row in parse_input(input) {
+        let (mode, min_x, max_x, min_y, max_y, min_z, max_z): Row = row;
+        println!("mode: {mode}");
+        println!("xs: {min_x}..={max_x}");
+        println!("ys: {min_y}..={max_y}");
+        println!("zs: {min_z}..={max_z}");
+        if let Some(xs) = clamp(min_x..=max_x) {
+            if let Some(ys) = clamp(min_y..=max_y) {
+                if let Some(zs) = clamp(min_z..=max_z) {
+                    println!("trims to: {xs:?} {ys:?} {zs:?}");
+                    match mode {
+                        "on" => iproduct!(xs, ys, zs).for_each(|pt| {
+                            grid.insert(pt);
+                        }),
+                        "off" => iproduct!(xs, ys, zs).for_each(|pt| {
+                            grid.remove(&pt);
+                        }),
+                        _ => panic!("Unexpected mode: \"{mode}\""),
+                    }
+                } else {
+                    println!("unable to trim: z");
+                }
+            } else {
+                println!("unable to trim: y");
+            }
+        } else {
+            println!("unable to trim: x");
+        }
+        println!();
+    }
+    println!("answer: {}", grid.len());
 }
 
 // fn solve_XXa() -> usize {
@@ -48,16 +96,19 @@ fn main() {
 //     456
 // }
 
-// type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
-type Row<'a> = (&'a str,);
+// type Row<'a> = (&'a str, isize, isize);
+// type Row<'a> = (&'a str, isize, isize, isize, isize);
+type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
 
 fn parse_input(input: &str) -> impl Iterator<Item = Row> {
-    let mut regex = String::from(r"([a-z]*)");
-    // regex += r" x=(\-?\d+)..(\-?\d+)";
-    // regex += r" y=(\-?\d+)..(\-?\d+)";
-    // regex += r" z=(\-?\d+)..(\-?\d+)";
-    println!("regex: {}", regex);
-
+    let mut regex = String::from(r"(on|off)");
+    regex += r" x=(\-?\d+)..(\-?\d+)";
+    regex += r",y=(\-?\d+)..(\-?\d+)";
+    regex += r",z=(\-?\d+)..(\-?\d+)";
+    println!("regex 1: {}", regex);
     let re = Regex::new(regex.as_str()).unwrap();
+    // regex += r" z=(\-?\d+)..(\-?\d+)";
+    println!("regex 2: {}", regex);
+
     parse_lines(re, input)
 }
