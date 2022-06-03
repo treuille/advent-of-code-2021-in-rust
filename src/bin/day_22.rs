@@ -37,199 +37,79 @@ on x=-41..9,y=-7..43,z=-33..15
 on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
 on x=967..23432,y=45373..81175,z=27513..53682";
 
-type Pt = (isize, isize, isize);
-
-fn clamp(r: RangeInclusive<isize>) -> Option<RangeInclusive<isize>> {
-    match r.into_inner() {
-        (_, j) if j < -50 => None,
-        (i, j) if i < -50 && j <= 50 => Some(-50..=j),
-        (i, j) if i < -50 && j > 50 => Some(-50..=50),
-        (i, j) if i <= 50 && j <= 50 => Some(i..=j),
-        (i, j) if i <= 50 && j > 50 => Some(i..=50),
-        (i, _) if i > 50 => None,
-        (i, j) => unimplemented!("Impossible range: {i}..={j}"),
-    }
-}
+// a: Cubes -> Clamp -> Remap -> Solve -> Count
+// a: Cubes -> Remap -> Solve -> Count
 
 fn main() {
     let mut grid: HashSet<Pt> = HashSet::new();
     // let clamp = |i| isize::max(-50, isize::min(50, i));
     let input = include_str!("../../puzzle_inputs/day_22.txt");
-    for row in parse_input(input) {
-        let (mode, min_x, max_x, min_y, max_y, min_z, max_z): Row = row;
-        println!("mode: {mode}");
-        if let Some(Cube { xs, ys, zs }) =
-            Cube::from_coords(min_x, max_x, min_y, max_y, min_z, max_z)
-        {
-            println!("trims to: {xs:?} {ys:?} {zs:?}");
-            match mode {
-                "on" => iproduct!(xs, ys, zs).for_each(|pt| {
+    for cube in parse_input(input) {
+        // let (mode, min_x, max_x, min_y, max_y, min_z, max_z): Row = row;
+        // println!("mode: {mode}");
+        // if let Some(Cube { xs, ys, zs }) =
+        //     Cube::from_coords(min_x, max_x, min_y, max_y, min_z, max_z)
+        // {
+        //     println!("trims to: {xs:?} {ys:?} {zs:?}");
+        println!("cube: {cube:?}");
+        if let Some(cube) = cube.clamp() {
+            println!("cube: {cube:?}");
+            match cube.additive {
+                true => iproduct!(cube.xs, cube.ys, cube.zs).for_each(|pt| {
                     grid.insert(pt);
                 }),
-                "off" => iproduct!(xs, ys, zs).for_each(|pt| {
+                false => iproduct!(cube.xs, cube.ys, cube.zs).for_each(|pt| {
                     grid.remove(&pt);
                 }),
-                _ => panic!("Unexpected mode: \"{mode}\""),
             }
         }
+        println!();
     }
     println!("answer: {}", grid.len());
 }
 
-#[derive(PartialEq, Eq, Hash)]
+type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
+
+// #[derive(PartialEq, Eq, Hash)]
+#[derive(Debug)]
 struct Cube {
+    additive: bool,
     xs: RangeInclusive<isize>,
     ys: RangeInclusive<isize>,
     zs: RangeInclusive<isize>,
 }
 
+type Pt = (isize, isize, isize);
+
 impl Cube {
-    fn from_coords(
-        min_x: isize,
-        max_x: isize,
-        min_y: isize,
-        max_y: isize,
-        min_z: isize,
-        max_z: isize,
-    ) -> Option<Self> {
-        println!("xs: {min_x}..={max_x}");
-        println!("ys: {min_y}..={max_y}");
-        println!("zs: {min_z}..={max_z}");
-        if let Some(xs) = clamp(min_x..=max_x) {
-            if let Some(ys) = clamp(min_y..=max_y) {
-                if let Some(zs) = clamp(min_z..=max_z) {
-                    Some(Cube { xs, ys, zs })
-                } else {
-                    println!("unable to trim: z");
-                    None
-                }
-            } else {
-                println!("unable to trim: y");
-                None
-            }
-        } else {
-            println!("unable to trim: x");
-            None
+    fn from_row((mode, min_x, max_x, min_y, max_y, min_z, max_z): Row) -> Self {
+        Self {
+            additive: mode == "on",
+            xs: min_x..=max_x,
+            ys: min_y..=max_y,
+            zs: min_z..=max_z,
         }
     }
-}
 
-struct CubeSet(HashSet<Cube>);
-
-// fn split_x(self, x: isize) -> Self {
-//     cube_set
-//         .into_iter()
-//         .flat_map(|Cube { xs, ys, zs }| match xs.clone().into_inner() {
-//             (i, j) if i < x && j < x => vec![Cube { xs, ys, zs }],
-//             (i, j) if i == x && j < x => unimplemented!("i == x && j < x"),
-//             (i, j) if i > x && j < x => unimplemented!("i > x && j < x"),
-
-//             (i, j) if i < x && j == x => vec![Cube { xs, ys, zs }],
-//             (i, j) if i == x && j == x => vec![Cube { xs, ys, zs }],
-//             (i, j) if i > x && j == x => unimplemented!("i > x && j == x"),
-
-//             (i, j) if i < x && j > x => {
-//                 vec![
-//                     Cube {
-//                         xs: i..=x,
-//                         ys: ys.clone(),
-//                         zs: zs.clone(),
-//                     },
-//                     Cube {
-//                         xs: x..=j,
-//                         ys: ys.clone(),
-//                         zs: zs.clone(),
-//                     },
-//                 ]
-//             }
-//             (i, j) if i == x && j > x => vec![Cube { xs, ys, zs }],
-//             (i, j) if i > x && j > x => vec![Cube { xs, ys, zs }],
-//             (i, j) => unimplemented!("what {i} {j}"),
-//         })
-//         .collect()
-// }
-
-impl CubeSet {
-    fn add(self, cube: Cube) -> Self {
-        //  TODO: Start implementing here.
-        todo!("CubeSet::add");
-        // let cube_set = self
-        //     .split_x(*cube.xs.start())
-        //     .split_x(*cube.xs.end())
-        //     .split_y(*cube.ys.start())
-        //     .split_y(*cube.ys.end())
-        //     .split_z(*cube.zs.start())
-        //     .split_z(*cube.zs.end())
-        // let cube_set = self;
-    }
-
-    fn split_x(self, x: isize) -> Self {
-        CubeSet(
-            self.0
-                .into_iter()
-                .flat_map(|cube| match cube.xs.clone().into_inner() {
-                    (i, j) if i < x && j > x => vec![
-                        Cube {
-                            xs: i..=x,
-                            ys: cube.ys.clone(),
-                            zs: cube.zs.clone(),
-                        },
-                        Cube {
-                            xs: x..=j,
-                            ys: cube.ys.clone(),
-                            zs: cube.zs.clone(),
-                        },
-                    ],
-                    _ => vec![cube],
-                })
-                .collect(),
-        )
-    }
-
-    fn split_y(self, y: isize) -> Self {
-        CubeSet(
-            self.0
-                .into_iter()
-                .flat_map(|cube| match cube.ys.clone().into_inner() {
-                    (i, j) if i < y && j > y => vec![
-                        Cube {
-                            xs: cube.xs.clone(),
-                            ys: i..=y,
-                            zs: cube.zs.clone(),
-                        },
-                        Cube {
-                            xs: cube.xs.clone(),
-                            ys: y..=j,
-                            zs: cube.zs.clone(),
-                        },
-                    ],
-                    _ => vec![cube],
-                })
-                .collect(),
-        )
-    }
-
-    fn split_z(self, z: isize) -> Self {
-        CubeSet(
-            self.0
-                .into_iter()
-                .flat_map(|cube| match cube.zs.clone().into_inner() {
-                    (i, j) if i < z && j > z => vec![
-                        Cube {
-                            xs: cube.xs.clone(),
-                            ys: cube.ys.clone(),
-                            zs: i..=z,
-                        },
-                        Cube {
-                            xs: cube.xs.clone(),
-                            ys: cube.ys.clone(),
-                            zs: z..=j,
-                        },
-                    ],
-                    _ => vec![cube],
-                })
-                .collect(),
-        )
+    fn clamp(self) -> Option<Self> {
+        let clamped_ranges: Vec<RangeInclusive<isize>> = [self.xs, self.ys, self.zs]
+            .into_iter()
+            .flat_map(|range| match range.into_inner() {
+                (_, j) if j < -50 => None,
+                (i, j) if i < -50 && j <= 50 => Some(-50..=j),
+                (i, j) if i < -50 && j > 50 => Some(-50..=50),
+                (i, j) if i <= 50 && j <= 50 => Some(i..=j),
+                (i, j) if i <= 50 && j > 50 => Some(i..=50),
+                (i, _) if i > 50 => None,
+                (i, j) => unimplemented!("Impossible range: {i}..={j}"),
+            })
+            .collect();
+        (clamped_ranges.len() == 3).then(|| Cube {
+            additive: self.additive,
+            xs: clamped_ranges[0].clone(),
+            ys: clamped_ranges[1].clone(),
+            zs: clamped_ranges[2].clone(),
+        })
     }
 }
 
@@ -243,17 +123,14 @@ impl CubeSet {
 
 // type Row<'a> = (&'a str, isize, isize);
 // type Row<'a> = (&'a str, isize, isize, isize, isize);
-type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
 
-fn parse_input(input: &str) -> impl Iterator<Item = Row> {
+fn parse_input(input: &str) -> Vec<Cube> {
     let mut regex = String::from(r"(on|off)");
     regex += r" x=(\-?\d+)..(\-?\d+)";
     regex += r",y=(\-?\d+)..(\-?\d+)";
     regex += r",z=(\-?\d+)..(\-?\d+)";
-    println!("regex 1: {}", regex);
     let re = Regex::new(regex.as_str()).unwrap();
     // regex += r" z=(\-?\d+)..(\-?\d+)";
-    println!("regex 2: {}", regex);
 
-    parse_lines(re, input)
+    parse_lines(re, input).map(Cube::from_row).collect()
 }
