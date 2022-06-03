@@ -76,6 +76,7 @@ fn main() {
     println!("answer: {}", grid.len());
 }
 
+#[derive(PartialEq, Eq, Hash)]
 struct Cube {
     xs: RangeInclusive<isize>,
     ys: RangeInclusive<isize>,
@@ -112,6 +113,126 @@ impl Cube {
         }
     }
 }
+
+struct CubeSet(HashSet<Cube>);
+
+// fn split_x(self, x: isize) -> Self {
+//     cube_set
+//         .into_iter()
+//         .flat_map(|Cube { xs, ys, zs }| match xs.clone().into_inner() {
+//             (i, j) if i < x && j < x => vec![Cube { xs, ys, zs }],
+//             (i, j) if i == x && j < x => unimplemented!("i == x && j < x"),
+//             (i, j) if i > x && j < x => unimplemented!("i > x && j < x"),
+
+//             (i, j) if i < x && j == x => vec![Cube { xs, ys, zs }],
+//             (i, j) if i == x && j == x => vec![Cube { xs, ys, zs }],
+//             (i, j) if i > x && j == x => unimplemented!("i > x && j == x"),
+
+//             (i, j) if i < x && j > x => {
+//                 vec![
+//                     Cube {
+//                         xs: i..=x,
+//                         ys: ys.clone(),
+//                         zs: zs.clone(),
+//                     },
+//                     Cube {
+//                         xs: x..=j,
+//                         ys: ys.clone(),
+//                         zs: zs.clone(),
+//                     },
+//                 ]
+//             }
+//             (i, j) if i == x && j > x => vec![Cube { xs, ys, zs }],
+//             (i, j) if i > x && j > x => vec![Cube { xs, ys, zs }],
+//             (i, j) => unimplemented!("what {i} {j}"),
+//         })
+//         .collect()
+// }
+
+impl CubeSet {
+    fn add(self, cube: Cube) -> Self {
+        //  TODO: Start implementing here.
+        todo!("CubeSet::add");
+        // let cube_set = self
+        //     .split_x(*cube.xs.start())
+        //     .split_x(*cube.xs.end())
+        //     .split_y(*cube.ys.start())
+        //     .split_y(*cube.ys.end())
+        //     .split_z(*cube.zs.start())
+        //     .split_z(*cube.zs.end())
+        // let cube_set = self;
+    }
+
+    fn split_x(self, x: isize) -> Self {
+        CubeSet(
+            self.0
+                .into_iter()
+                .flat_map(|cube| match cube.xs.clone().into_inner() {
+                    (i, j) if i < x && j > x => vec![
+                        Cube {
+                            xs: i..=x,
+                            ys: cube.ys.clone(),
+                            zs: cube.zs.clone(),
+                        },
+                        Cube {
+                            xs: x..=j,
+                            ys: cube.ys.clone(),
+                            zs: cube.zs.clone(),
+                        },
+                    ],
+                    _ => vec![cube],
+                })
+                .collect(),
+        )
+    }
+
+    fn split_y(self, y: isize) -> Self {
+        CubeSet(
+            self.0
+                .into_iter()
+                .flat_map(|cube| match cube.ys.clone().into_inner() {
+                    (i, j) if i < y && j > y => vec![
+                        Cube {
+                            xs: cube.xs.clone(),
+                            ys: i..=y,
+                            zs: cube.zs.clone(),
+                        },
+                        Cube {
+                            xs: cube.xs.clone(),
+                            ys: y..=j,
+                            zs: cube.zs.clone(),
+                        },
+                    ],
+                    _ => vec![cube],
+                })
+                .collect(),
+        )
+    }
+
+    fn split_z(self, z: isize) -> Self {
+        CubeSet(
+            self.0
+                .into_iter()
+                .flat_map(|cube| match cube.zs.clone().into_inner() {
+                    (i, j) if i < z && j > z => vec![
+                        Cube {
+                            xs: cube.xs.clone(),
+                            ys: cube.ys.clone(),
+                            zs: i..=z,
+                        },
+                        Cube {
+                            xs: cube.xs.clone(),
+                            ys: cube.ys.clone(),
+                            zs: z..=j,
+                        },
+                    ],
+                    _ => vec![cube],
+                })
+                .collect(),
+        )
+    }
+}
+
 // fn solve_XXa() -> usize {
 //     123
 // }
