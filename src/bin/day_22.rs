@@ -58,36 +58,60 @@ fn main() {
     for row in parse_input(input) {
         let (mode, min_x, max_x, min_y, max_y, min_z, max_z): Row = row;
         println!("mode: {mode}");
+        if let Some(Cube { xs, ys, zs }) =
+            Cube::from_coords(min_x, max_x, min_y, max_y, min_z, max_z)
+        {
+            println!("trims to: {xs:?} {ys:?} {zs:?}");
+            match mode {
+                "on" => iproduct!(xs, ys, zs).for_each(|pt| {
+                    grid.insert(pt);
+                }),
+                "off" => iproduct!(xs, ys, zs).for_each(|pt| {
+                    grid.remove(&pt);
+                }),
+                _ => panic!("Unexpected mode: \"{mode}\""),
+            }
+        }
+    }
+    println!("answer: {}", grid.len());
+}
+
+struct Cube {
+    xs: RangeInclusive<isize>,
+    ys: RangeInclusive<isize>,
+    zs: RangeInclusive<isize>,
+}
+
+impl Cube {
+    fn from_coords(
+        min_x: isize,
+        max_x: isize,
+        min_y: isize,
+        max_y: isize,
+        min_z: isize,
+        max_z: isize,
+    ) -> Option<Self> {
         println!("xs: {min_x}..={max_x}");
         println!("ys: {min_y}..={max_y}");
         println!("zs: {min_z}..={max_z}");
         if let Some(xs) = clamp(min_x..=max_x) {
             if let Some(ys) = clamp(min_y..=max_y) {
                 if let Some(zs) = clamp(min_z..=max_z) {
-                    println!("trims to: {xs:?} {ys:?} {zs:?}");
-                    match mode {
-                        "on" => iproduct!(xs, ys, zs).for_each(|pt| {
-                            grid.insert(pt);
-                        }),
-                        "off" => iproduct!(xs, ys, zs).for_each(|pt| {
-                            grid.remove(&pt);
-                        }),
-                        _ => panic!("Unexpected mode: \"{mode}\""),
-                    }
+                    Some(Cube { xs, ys, zs })
                 } else {
                     println!("unable to trim: z");
+                    None
                 }
             } else {
                 println!("unable to trim: y");
+                None
             }
         } else {
             println!("unable to trim: x");
+            None
         }
-        println!();
     }
-    println!("answer: {}", grid.len());
 }
-
 // fn solve_XXa() -> usize {
 //     123
 // }
