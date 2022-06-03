@@ -113,6 +113,72 @@ pub mod parse_regex {
         }
     }
 
+    impl<'a, T1, T2, T3, T4, T5> FromRegex<'a> for (T1, T2, T3, T4, T5)
+    where
+        T1: FromStr<'a>,
+        T2: FromStr<'a>,
+        T3: FromStr<'a>,
+        T4: FromStr<'a>,
+        T5: FromStr<'a>,
+    {
+        fn parse(re: &Regex, s: &'a str) -> Self {
+            let captures = re.captures(s).unwrap();
+            (
+                T1::from_str(captures.get(1).unwrap().as_str()),
+                T2::from_str(captures.get(2).unwrap().as_str()),
+                T3::from_str(captures.get(3).unwrap().as_str()),
+                T4::from_str(captures.get(4).unwrap().as_str()),
+                T5::from_str(captures.get(5).unwrap().as_str()),
+            )
+        }
+    }
+
+    impl<'a, T1, T2, T3, T4, T5, T6> FromRegex<'a> for (T1, T2, T3, T4, T5, T6)
+    where
+        T1: FromStr<'a>,
+        T2: FromStr<'a>,
+        T3: FromStr<'a>,
+        T4: FromStr<'a>,
+        T5: FromStr<'a>,
+        T6: FromStr<'a>,
+    {
+        fn parse(re: &Regex, s: &'a str) -> Self {
+            let captures = re.captures(s).unwrap();
+            (
+                T1::from_str(captures.get(1).unwrap().as_str()),
+                T2::from_str(captures.get(2).unwrap().as_str()),
+                T3::from_str(captures.get(3).unwrap().as_str()),
+                T4::from_str(captures.get(4).unwrap().as_str()),
+                T5::from_str(captures.get(5).unwrap().as_str()),
+                T6::from_str(captures.get(6).unwrap().as_str()),
+            )
+        }
+    }
+
+    impl<'a, T1, T2, T3, T4, T5, T6, T7> FromRegex<'a> for (T1, T2, T3, T4, T5, T6, T7)
+    where
+        T1: FromStr<'a>,
+        T2: FromStr<'a>,
+        T3: FromStr<'a>,
+        T4: FromStr<'a>,
+        T5: FromStr<'a>,
+        T6: FromStr<'a>,
+        T7: FromStr<'a>,
+    {
+        fn parse(re: &Regex, s: &'a str) -> Self {
+            let captures = re.captures(s).unwrap();
+            (
+                T1::from_str(captures.get(1).unwrap().as_str()),
+                T2::from_str(captures.get(2).unwrap().as_str()),
+                T3::from_str(captures.get(3).unwrap().as_str()),
+                T4::from_str(captures.get(4).unwrap().as_str()),
+                T5::from_str(captures.get(5).unwrap().as_str()),
+                T6::from_str(captures.get(6).unwrap().as_str()),
+                T7::from_str(captures.get(7).unwrap().as_str()),
+            )
+        }
+    }
+
     pub struct ParseLines<'a, T>
     where
         T: FromRegex<'a>,
