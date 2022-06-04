@@ -44,13 +44,23 @@ fn main() {
     // let clamp = |i| isize::max(-50, isize::min(50, i));
     let input = include_str!("../../puzzle_inputs/day_22.txt");
     let cubes = parse_input(input);
-    println!("answer: {}", solve_22a(&cubes));
+    println!("22a: {}", solve_22a(&cubes));
+    println!("22b: {}", solve_22b(&cubes));
 }
 
 fn solve_22a(cubes: &[Cube]) -> usize {
     let cubes: Vec<Cube> = cubes.iter().filter_map(Cube::clamp).collect();
     let grid = compute_pts(&cubes);
     grid.len()
+}
+
+fn solve_22b(cubes: &[Cube]) -> usize {
+    let (_remap, cubes) = Remap::from_cubes(cubes);
+    for cube in &cubes {
+        println!("{cube:?}");
+    }
+    let grid = compute_pts(&cubes);
+    todo!("returning grid with len: {}", grid.len());
 }
 
 type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
@@ -127,6 +137,12 @@ impl Remap {
         let x_map: HashMap<isize, usize> = xs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
         let y_map: HashMap<isize, usize> = ys.iter().enumerate().map(|(k, &v)| (v, k)).collect();
         let z_map: HashMap<isize, usize> = zs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
+
+        // // debug - bein
+        // println!("x_map: {x_map:?}");
+        // panic!("x_map: {:?}", x_map.iter().sorted().collect::<Vec<_>>());
+        // // debug - end
+
         let remapped_cubes = cubes
             .iter()
             .map(|cube| Cube {
@@ -143,11 +159,12 @@ impl Remap {
 fn compute_pts(cubes: &[Cube]) -> HashSet<Pt> {
     let mut grid: HashSet<Pt> = HashSet::new();
     let ignore = |_: bool| ();
-    for cube in cubes {
+    for (i, cube) in cubes.iter().enumerate() {
         match cube.additive {
             true => cube.pts().for_each(|pt| ignore(grid.insert(pt))),
             false => cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
         }
+        println!("{i} -> {}", grid.len());
     }
     grid
 }
