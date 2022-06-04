@@ -48,28 +48,8 @@ fn main() {
 }
 
 fn solve_22a(cubes: &[Cube]) -> usize {
-    let mut grid: HashSet<Pt> = HashSet::new();
-    for cube in cubes {
-        // let (mode, min_x, max_x, min_y, max_y, min_z, max_z): Row = row;
-        // println!("mode: {mode}");
-        // if let Some(Cube { xs, ys, zs }) =
-        //     Cube::from_coords(min_x, max_x, min_y, max_y, min_z, max_z)
-        // {
-        //     println!("trims to: {xs:?} {ys:?} {zs:?}");
-        println!("cube: {cube:?}");
-        if let Some(cube) = cube.clamp() {
-            println!("cube: {cube:?}");
-            match cube.additive {
-                true => iproduct!(cube.xs, cube.ys, cube.zs).for_each(|pt| {
-                    grid.insert(pt);
-                }),
-                false => iproduct!(cube.xs, cube.ys, cube.zs).for_each(|pt| {
-                    grid.remove(&pt);
-                }),
-            }
-        }
-        println!();
-    }
+    let cubes: Vec<Cube> = cubes.iter().filter_map(Cube::clamp).collect();
+    let grid = compute_pts(&cubes);
     grid.len()
 }
 
@@ -94,6 +74,10 @@ impl Cube {
             ys: min_y..=max_y,
             zs: min_z..=max_z,
         }
+    }
+
+    fn pts(&self) -> impl Iterator<Item = Pt> {
+        iproduct!(self.xs.clone(), self.ys.clone(), self.zs.clone())
     }
 
     fn clamp(&self) -> Option<Self> {
@@ -156,38 +140,17 @@ impl Remap {
     }
 }
 
-// fn solve_XXa() -> usize {
-//     123
-// }
-
-// fn solve_XXb() -> usize {
-//     456
-// }
-
-// type Row<'a> = (&'a str, isize, isize);
-// type Row<'a> = (&'a str, isize, isize, isize, isize);
-
-// fn parse_input(input: &str) -> Vec<Cube> {
-//     let mut regex = String::from(r"(on|off)");
-//     regex += r" x=(\-?\d+)..(\-?\d+)";
-//     regex += r",y=(\-?\d+)..(\-?\d+)";
-//     regex += r",z=(\-?\d+)..(\-?\d+)";
-//     let re = Regex::new(regex.as_str()).unwrap();
-//     // regex += r" z=(\-?\d+)..(\-?\d+)";
-
-//     parse_lines(re, input).map(Cube::from_row).collect()
-// }
-
-// fn solve_XXa() -> usize {
-//     123
-// }
-
-// fn solve_XXb() -> usize {
-//     456
-// }
-
-// type Row<'a> = (&'a str, isize, isize);
-// type Row<'a> = (&'a str, isize, isize, isize, isize);
+fn compute_pts(cubes: &[Cube]) -> HashSet<Pt> {
+    let mut grid: HashSet<Pt> = HashSet::new();
+    let ignore = |_: bool| ();
+    for cube in cubes {
+        match cube.additive {
+            true => cube.pts().for_each(|pt| ignore(grid.insert(pt))),
+            false => cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
+        }
+    }
+    grid
+}
 
 fn parse_input(input: &str) -> Vec<Cube> {
     let mut regex = String::from(r"(on|off)");
