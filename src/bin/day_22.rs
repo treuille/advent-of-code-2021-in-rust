@@ -1,11 +1,12 @@
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
 
 use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
-use std::ops::RangeInclusive;
+use std::ops::Range;
+use std::rc::Rc;
 
 const TEST_INPUT_1: &str = "
 on x=10..12,y=10..12,z=10..12
@@ -59,185 +60,172 @@ on x=-49..-5,y=-3..45,z=-29..18
 off x=18..30,y=-20..-8,z=-3..13
 on x=-41..9,y=-7..43,z=-33..15";
 
-// a: Cubes -> Clamp -> Remap -> Solve -> Count
-// a: Cubes -> Remap -> Solve -> Count
+// b todo:
+// - keep a mutable list of cubes
+// - update that list whenever we need to
 
 fn main() {
-    // let clamp = |i| isize::max(-50, isize::min(50, i));
-    // let input = include_str!("../../puzzle_inputs/day_22.txt");
+    // let input = TEST_INPUT_2;
+    let input = include_str!("../../puzzle_inputs/day_22.txt");
+    let instructions = parse_input(input);
+    println!("22a: {}", solve_22a(&instructions));
 
-    // let input = MY_INPUT_1;
-    // let cubes = parse_input(input);
+    // println!("22a: {:?}", solve_22b(instructions));
 
-    let cubes = vec![
-        Cube {
-            additive: true,
-            xs: 1..=10,
-            ys: 1..=10,
-            zs: 1..=10,
-        },
-        Cube {
-            additive: true,
-            xs: 20..=30,
-            ys: 20..=30,
-            zs: 20..=30,
-        },
-    ];
-    println!("22a: {}", solve_22a(&cubes));
-    println!("22b: {}", solve_22b(&cubes));
+    // let cubes = vec![
+    // k
+    //     Cube {
+    //         additive: true,
+    //         xs: 1..=10,
+    //         ys: 1..=10,
+    //         zs: 1..=10,
+    //     },
+    //     Cube {
+    //         additive: true,
+    //         xs: 20..=30,
+    //         ys: 20..=30,
+    //         zs: 20..=30,
+    //     },
+    // ];
+    // println!("22b: {}", solve_22b(&cubes));
 }
 
-fn solve_22a(cubes: &[Cube]) -> usize {
-    let cubes: Vec<Cube> = cubes.iter().filter_map(Cube::clamp).collect();
-    let grid = compute_pts(&cubes);
+fn solve_22a(steps: &[Step]) -> usize {
+    let steps: Vec<Step> = steps.iter().filter_map(Step::clamp).collect();
+    let mut grid: HashSet<Pt> = HashSet::new();
+    let ignore = |_: bool| ();
+    for step in steps {
+        match step {
+            Step::On(cube) => cube.pts().for_each(|pt| ignore(grid.insert(pt))),
+            Step::Off(cube) => cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
+        }
+    }
     grid.len()
 }
 
-fn solve_22b(cubes: &[Cube]) -> isize {
-    let cubes: Vec<Cube> = cubes.iter().filter_map(Cube::clamp).collect();
-    measure_with_remap(&cubes)
-}
+type Cubes = Vec<Rc<Cube>>;
 
-fn measure_with_remap(cubes: &[Cube]) -> isize {
-    let (remap, cubes) = Remap::from_cubes(cubes);
-    for cube in &cubes {
-        println!("{cube:?}");
+fn solve_22b(steps: Vec<Step>) {
+    let mut cubes: Cubes = Cubes::new();
+    println!("Just starting: {}", cubes.len());
+    for step in steps {
+        match step {
+            Step::On(cube) => {
+                cubes = cube.subtract_from(cubes);
+                cubes.push(Rc::new(cube));
+            }
+            Step::Off(cube) => {
+                cubes = cube.subtract_from(cubes);
+            }
+        }
+        panic!("Finished first step: {}", cubes.len());
     }
-    let grid = compute_pts(&cubes);
-    println!("grid: {grid:?}");
-    remap.measure(&grid)
+    todo!("nothing")
 }
 
+/// A voxel in 3-space.
+type Pt = [isize; 3];
+
+/// A row of the input file.
 type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
 
-// #[derive(PartialEq, Eq, Hash)]
-#[derive(Debug)]
-struct Cube {
-    additive: bool,
-    xs: RangeInclusive<isize>,
-    ys: RangeInclusive<isize>,
-    zs: RangeInclusive<isize>,
-}
-
-type Pt = (isize, isize, isize);
+#[derive(PartialEq, Debug)]
+struct Cube([Range<isize>; 3]);
 
 impl Cube {
-    fn from_row((mode, min_x, max_x, min_y, max_y, min_z, max_z): Row) -> Self {
-        Self {
-            additive: mode == "on",
-            xs: min_x..=max_x,
-            ys: min_y..=max_y,
-            zs: min_z..=max_z,
-        }
-    }
-
     fn pts(&self) -> impl Iterator<Item = Pt> {
-        iproduct!(self.xs.clone(), self.ys.clone(), self.zs.clone())
+        let Cube([xs, ys, zs]) = self;
+        iproduct!(xs.clone(), ys.clone(), zs.clone()).map(|(x, y, z)| [x, y, z])
     }
 
     fn clamp(&self) -> Option<Self> {
-        let clamped_ranges: Vec<RangeInclusive<isize>> = [&self.xs, &self.ys, &self.zs]
-            .into_iter()
-            .flat_map(|range| match (*range.start(), *range.end()) {
-                (_, j) if j < -50 => None,
-                (i, j) if i < -50 && j <= 50 => Some(-50..=j),
-                (i, j) if i < -50 && j > 50 => Some(-50..=50),
-                (i, j) if i <= 50 && j <= 50 => Some(i..=j),
-                (i, j) if i <= 50 && j > 50 => Some(i..=50),
-                (i, _) if i > 50 => None,
+        let mut clamped_ranges = [0..0, 0..0, 0..0];
+        for (clamped_range, range) in clamped_ranges.iter_mut().zip(self.0.iter()) {
+            *clamped_range = match (range.start, range.end) {
+                (_, j) if j <= -50 => return None,
+                (i, j) if i <= -50 && j <= 51 => -50..j,
+                (i, j) if i <= -50 && j > 51 => -50..51,
+                (i, j) if i <= 51 && j <= 51 => i..j,
+                (i, j) if i <= 51 && j > 51 => i..51,
+                (i, _) if i > 51 => return None,
                 (i, j) => unimplemented!("Impossible range: {i}..={j}"),
-            })
-            .collect();
-        (clamped_ranges.len() == 3).then(|| Cube {
-            additive: self.additive,
-            xs: clamped_ranges[0].clone(),
-            ys: clamped_ranges[1].clone(),
-            zs: clamped_ranges[2].clone(),
-        })
-    }
-}
-
-struct Remap {
-    xs: Vec<isize>,
-    ys: Vec<isize>,
-    zs: Vec<isize>,
-}
-
-impl Remap {
-    fn from_cubes(cubes: &[Cube]) -> (Self, Vec<Cube>) {
-        let mut xs: Vec<isize> = Vec::new();
-        let mut ys: Vec<isize> = Vec::new();
-        let mut zs: Vec<isize> = Vec::new();
-        for cube in cubes {
-            xs.push(*cube.xs.start());
-            ys.push(*cube.ys.start());
-            zs.push(*cube.zs.start());
-            xs.push(*cube.xs.end());
-            ys.push(*cube.ys.end());
-            zs.push(*cube.zs.end());
+            }
         }
-
-        let xs: Vec<isize> = xs.iter().copied().unique().sorted().collect();
-        let ys: Vec<isize> = ys.iter().copied().unique().sorted().collect();
-        let zs: Vec<isize> = zs.iter().copied().unique().sorted().collect();
-
-        let x_map: HashMap<isize, usize> = xs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
-        let y_map: HashMap<isize, usize> = ys.iter().enumerate().map(|(k, &v)| (v, k)).collect();
-        let z_map: HashMap<isize, usize> = zs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
-
-        let remapped_cubes = cubes
-            .iter()
-            .map(|cube| Cube {
-                additive: cube.additive,
-                xs: (x_map[cube.xs.start()] as isize)..=(x_map[cube.xs.end()] as isize),
-                ys: (y_map[cube.ys.start()] as isize)..=(y_map[cube.ys.end()] as isize),
-                zs: (z_map[cube.zs.start()] as isize)..=(z_map[cube.zs.end()] as isize),
-            })
-            .collect();
-        (Remap { xs, ys, zs }, remapped_cubes)
+        Some(Cube(clamped_ranges))
     }
 
-    fn measure(&self, pts: &HashSet<Pt>) -> isize {
-        let dx = self.xs.iter().tuple_windows().map(|(x1, x2)| x2 - x1);
-        let dy = self.ys.iter().tuple_windows().map(|(y1, y2)| y2 - y1);
-        let dz = self.zs.iter().tuple_windows().map(|(z1, z2)| z2 - z1);
-        let mut dx: Vec<isize> = dx.collect();
-        let mut dy: Vec<isize> = dy.collect();
-        let mut dz: Vec<isize> = dz.collect();
-        dx.push(1);
-        dy.push(1);
-        dz.push(1);
-        println!("xs: {:?}", self.xs);
-        println!("ys: {:?}", self.ys);
-        println!("zs: {:?}", self.zs);
-        println!("dx: {dx:?}");
-        println!("dy: {dy:?}");
-        println!("dz: {dz:?}");
-        pts.iter()
-            .map(|(x, y, z)| dx[*x as usize] * dy[*y as usize] * dz[*z as usize])
-            .sum()
+    /// Are these two cubes disjoint?
+    fn disjoint(&self, _other: &Self) -> bool {
+        todo!("disjoint")
+        // self.0.iter().zip(other.0).all(|(range_1, range_2)| {
+        //     range_1.end() < range_2.start() || range_2.end() < range_1.start()
+        // })
+    }
+
+    /// Are all these cubes dijoint?
+    fn all_disjoint(_cubes: Cubes) -> bool {
+        todo!("all_disjoint")
+        // // TODO: != -> ==
+        // cubes
+        //     .iter()
+        //     .zip(cubes.iter())
+        //     .all(|(cube_1, cube_2)| cube_1 != cube_2 || cube_1.disjoint(cube_2))
+    }
+
+    /// Subract this cube from the set of cubes we have here.
+    fn subtract_from(&self, _cubes: Cubes) -> Cubes {
+        todo!("subtract_from")
+        // for cube in cubes {
+        //     let _coords_by_dim: Vec<Vec<isize>> = self
+        //         .0
+        //         .iter()
+        //         .zip(cube.0.iter())
+        //         .map(|(s_range, c_range)| {
+        //             match (
+        //                 *s_range.start(),
+        //                 *s_range.end(),
+        //                 *c_range.start(),
+        //                 *c_range.end(),
+        //             ) {
+        //                 (s1, s2, c1, c2) if s2 < c1 => vec![s1, s2, c1, c2],
+        //                 _ => panic!("Haven't finished this case yet."),
+        //             }
+        //         })
+        //         .collect();
+        //     // for  in
+        //     // }
+        // }
     }
 }
 
-fn compute_pts(cubes: &[Cube]) -> HashSet<Pt> {
-    let mut grid: HashSet<Pt> = HashSet::new();
-    let ignore = |_: bool| ();
-    for cube in cubes {
-        match cube.additive {
-            true => cube.pts().for_each(|pt| ignore(grid.insert(pt))),
-            false => cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
+enum Step {
+    On(Cube),
+    Off(Cube),
+}
+
+impl Step {
+    fn from_row((mode, min_x, max_x, min_y, max_y, min_z, max_z): Row) -> Self {
+        let cube = Cube([min_x..(max_x + 1), min_y..(max_y + 1), min_z..(max_z + 1)]);
+        match mode {
+            "on" => Step::On(cube),
+            "off" => Step::Off(cube),
+            _ => panic!("Unexpected mode: \"{mode}\""),
         }
     }
-    grid
+
+    fn clamp(&self) -> Option<Self> {
+        match self {
+            Step::On(cube) => cube.clamp().map(Step::On),
+            Step::Off(cube) => cube.clamp().map(Step::Off),
+        }
+    }
 }
 
-fn parse_input(input: &str) -> Vec<Cube> {
+fn parse_input(input: &str) -> Vec<Step> {
     let mut regex = String::from(r"(on|off)");
     regex += r" x=(\-?\d+)..(\-?\d+)";
     regex += r",y=(\-?\d+)..(\-?\d+)";
     regex += r",z=(\-?\d+)..(\-?\d+)";
     let re = Regex::new(regex.as_str()).unwrap();
-    // regex += r" z=(\-?\d+)..(\-?\d+)";
-
-    parse_lines(re, input).map(Cube::from_row).collect()
+    parse_lines(re, input).map(Step::from_row).collect()
 }
