@@ -65,8 +65,24 @@ on x=-41..9,y=-7..43,z=-33..15";
 fn main() {
     // let clamp = |i| isize::max(-50, isize::min(50, i));
     // let input = include_str!("../../puzzle_inputs/day_22.txt");
-    let input = MY_INPUT_1;
-    let cubes = parse_input(input);
+
+    // let input = MY_INPUT_1;
+    // let cubes = parse_input(input);
+
+    let cubes = vec![
+        Cube {
+            additive: true,
+            xs: 1..=10,
+            ys: 1..=10,
+            zs: 1..=10,
+        },
+        Cube {
+            additive: true,
+            xs: 20..=30,
+            ys: 20..=30,
+            zs: 20..=30,
+        },
+    ];
     println!("22a: {}", solve_22a(&cubes));
     println!("22b: {}", solve_22b(&cubes));
 }
@@ -78,13 +94,17 @@ fn solve_22a(cubes: &[Cube]) -> usize {
 }
 
 fn solve_22b(cubes: &[Cube]) -> isize {
+    let cubes: Vec<Cube> = cubes.iter().filter_map(Cube::clamp).collect();
+    measure_with_remap(&cubes)
+}
+
+fn measure_with_remap(cubes: &[Cube]) -> isize {
     let (remap, cubes) = Remap::from_cubes(cubes);
     for cube in &cubes {
         println!("{cube:?}");
     }
     let grid = compute_pts(&cubes);
-    println!("returning grid with len: {}", grid.len());
-    println!("grid measure: {}", remap.measure(&grid));
+    println!("grid: {grid:?}");
     remap.measure(&grid)
 }
 
@@ -187,6 +207,12 @@ impl Remap {
         dx.push(1);
         dy.push(1);
         dz.push(1);
+        println!("xs: {:?}", self.xs);
+        println!("ys: {:?}", self.ys);
+        println!("zs: {:?}", self.zs);
+        println!("dx: {dx:?}");
+        println!("dy: {dy:?}");
+        println!("dz: {dz:?}");
         pts.iter()
             .map(|(x, y, z)| dx[*x as usize] * dy[*y as usize] * dz[*z as usize])
             .sum()
