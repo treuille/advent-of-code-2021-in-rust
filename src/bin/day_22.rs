@@ -37,12 +37,35 @@ on x=-41..9,y=-7..43,z=-33..15
 on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
 on x=967..23432,y=45373..81175,z=27513..53682";
 
+const MY_INPUT_1: &str = "
+on x=-20..26,y=-36..17,z=-47..7
+on x=-20..33,y=-21..23,z=-26..28
+on x=-22..28,y=-29..23,z=-38..16
+on x=-46..7,y=-6..46,z=-50..-1
+on x=-49..1,y=-3..46,z=-24..28
+on x=2..47,y=-22..22,z=-23..27
+on x=-27..23,y=-28..26,z=-21..29
+on x=-39..5,y=-6..47,z=-3..44
+on x=-30..21,y=-8..43,z=-13..34
+on x=-22..26,y=-27..20,z=-29..19
+off x=-48..-32,y=26..41,z=-47..-37
+on x=-12..35,y=6..50,z=-50..-2
+off x=-48..-32,y=-32..-16,z=-15..-5
+on x=-18..26,y=-33..15,z=-7..46
+off x=-40..-22,y=-38..-28,z=23..41
+on x=-16..35,y=-41..10,z=-47..6
+off x=-32..-23,y=11..30,z=-14..3
+on x=-49..-5,y=-3..45,z=-29..18
+off x=18..30,y=-20..-8,z=-3..13
+on x=-41..9,y=-7..43,z=-33..15";
+
 // a: Cubes -> Clamp -> Remap -> Solve -> Count
 // a: Cubes -> Remap -> Solve -> Count
 
 fn main() {
     // let clamp = |i| isize::max(-50, isize::min(50, i));
-    let input = include_str!("../../puzzle_inputs/day_22.txt");
+    // let input = include_str!("../../puzzle_inputs/day_22.txt");
+    let input = MY_INPUT_1;
     let cubes = parse_input(input);
     println!("22a: {}", solve_22a(&cubes));
     println!("22b: {}", solve_22b(&cubes));
@@ -54,13 +77,15 @@ fn solve_22a(cubes: &[Cube]) -> usize {
     grid.len()
 }
 
-fn solve_22b(cubes: &[Cube]) -> usize {
-    let (_remap, cubes) = Remap::from_cubes(cubes);
+fn solve_22b(cubes: &[Cube]) -> isize {
+    let (remap, cubes) = Remap::from_cubes(cubes);
     for cube in &cubes {
         println!("{cube:?}");
     }
     let grid = compute_pts(&cubes);
-    todo!("returning grid with len: {}", grid.len());
+    println!("returning grid with len: {}", grid.len());
+    println!("grid measure: {}", remap.measure(&grid));
+    remap.measure(&grid)
 }
 
 type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
@@ -131,17 +156,14 @@ impl Remap {
             ys.push(*cube.ys.end());
             zs.push(*cube.zs.end());
         }
+
         let xs: Vec<isize> = xs.iter().copied().unique().sorted().collect();
         let ys: Vec<isize> = ys.iter().copied().unique().sorted().collect();
         let zs: Vec<isize> = zs.iter().copied().unique().sorted().collect();
+
         let x_map: HashMap<isize, usize> = xs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
         let y_map: HashMap<isize, usize> = ys.iter().enumerate().map(|(k, &v)| (v, k)).collect();
         let z_map: HashMap<isize, usize> = zs.iter().enumerate().map(|(k, &v)| (v, k)).collect();
-
-        // // debug - bein
-        // println!("x_map: {x_map:?}");
-        // panic!("x_map: {:?}", x_map.iter().sorted().collect::<Vec<_>>());
-        // // debug - end
 
         let remapped_cubes = cubes
             .iter()
@@ -154,17 +176,31 @@ impl Remap {
             .collect();
         (Remap { xs, ys, zs }, remapped_cubes)
     }
+
+    fn measure(&self, pts: &HashSet<Pt>) -> isize {
+        let dx = self.xs.iter().tuple_windows().map(|(x1, x2)| x2 - x1);
+        let dy = self.ys.iter().tuple_windows().map(|(y1, y2)| y2 - y1);
+        let dz = self.zs.iter().tuple_windows().map(|(z1, z2)| z2 - z1);
+        let mut dx: Vec<isize> = dx.collect();
+        let mut dy: Vec<isize> = dy.collect();
+        let mut dz: Vec<isize> = dz.collect();
+        dx.push(1);
+        dy.push(1);
+        dz.push(1);
+        pts.iter()
+            .map(|(x, y, z)| dx[*x as usize] * dy[*y as usize] * dz[*z as usize])
+            .sum()
+    }
 }
 
 fn compute_pts(cubes: &[Cube]) -> HashSet<Pt> {
     let mut grid: HashSet<Pt> = HashSet::new();
     let ignore = |_: bool| ();
-    for (i, cube) in cubes.iter().enumerate() {
+    for cube in cubes {
         match cube.additive {
             true => cube.pts().for_each(|pt| ignore(grid.insert(pt))),
             false => cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
         }
-        println!("{i} -> {}", grid.len());
     }
     grid
 }
