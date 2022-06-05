@@ -1,7 +1,7 @@
 #![allow(dead_code, unused_imports, clippy::needless_collect)]
 
 use aoc::parse_regex::parse_lines;
-use itertools::{iproduct, Itertools};
+use itertools::{iproduct, izip, Itertools};
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
@@ -74,7 +74,8 @@ fn main() {
 }
 
 fn solve_22a(steps: &[Step]) -> usize {
-    let steps: Vec<Step> = steps.iter().filter_map(Step::clamp).collect();
+    let bound = Cube([-50..51, -50..51, -50..51]);
+    let steps: Vec<Step> = steps.iter().filter_map(|step| step.clamp(&bound)).collect();
     let mut grid: HashSet<Pt> = HashSet::new();
     let ignore = |_: bool| ();
     for step in steps {
@@ -90,7 +91,8 @@ type Cubes = Vec<Cube>;
 
 fn solve_22b(steps: Vec<Step>) {
     let volume = |cubes: &Cubes| -> isize { cubes.iter().map(Cube::volume).sum() };
-    let steps: Vec<Step> = steps.iter().filter_map(Step::clamp).collect();
+    let bound = Cube([-50..51, -50..51, -50..51]);
+    let steps: Vec<Step> = steps.iter().filter_map(|step| step.clamp(&bound)).collect();
     // bounding cube: Cube([-49..48, -41..51, -50..47])
     // panic!(
     //     "bounding cube: {:?}",
@@ -144,16 +146,18 @@ impl Cube {
         self.0.iter().map(|range| range.end - range.start).product()
     }
 
-    fn clamp(&self) -> Option<Self> {
+    ///  Clamp's this to lie within the given bound bound.
+    fn clamp(&self, Cube(bounds): &Cube) -> Option<Self> {
+        let Cube(ranges) = self;
         let mut clamped_ranges = [0..0, 0..0, 0..0];
-        for (clamped_range, range) in clamped_ranges.iter_mut().zip(self.0.iter()) {
+        for (clamped_range, range, bound) in izip!(clamped_ranges.iter_mut(), ranges, bounds) {
             *clamped_range = match (range.start, range.end) {
-                (_, j) if j <= -50 => return None,
-                (i, j) if i <= -50 && j <= 51 => -50..j,
-                (i, j) if i <= -50 && j > 51 => -50..51,
-                (i, j) if i <= 51 && j <= 51 => i..j,
-                (i, j) if i <= 51 && j > 51 => i..51,
-                (i, _) if i > 51 => return None,
+                (_, j) if j <= bound.start => return None,
+                (i, j) if i <= bound.start && j <= bound.end => bound.start..j,
+                (i, j) if i <= bound.start && j > bound.end => bound.clone(),
+                (i, j) if i <= bound.end && j <= bound.end => i..j,
+                (i, j) if i <= bound.end && j > bound.end => i..bound.end,
+                (i, _) if i > bound.end => return None,
                 (i, j) => unimplemented!("Impossible range: {i}..={j}"),
             }
         }
@@ -247,10 +251,10 @@ impl Step {
         }
     }
 
-    fn clamp(&self) -> Option<Self> {
+    fn clamp(&self, bound: &Cube) -> Option<Self> {
         Some(Self {
             additive: self.additive,
-            cube: self.cube.clamp()?,
+            cube: self.cube.clamp(bound)?,
         })
         // match self {
         //     Step::On(cube) => cube.clamp().map(Step::On),
