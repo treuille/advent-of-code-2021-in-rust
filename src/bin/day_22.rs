@@ -96,7 +96,7 @@ fn solve_22b(steps: Vec<Step>) -> isize {
 
 fn solve_recursively(steps: Vec<Step>) -> isize {
     // Figure out the bounding cube, and pick the longest axis.
-    const RECURSIVE_BOTTOM: usize = 5;
+    const RECURSIVE_BOTTOM: usize = 10;
     if steps.len() <= RECURSIVE_BOTTOM {
         return solve_iteratively(steps);
     }
@@ -121,8 +121,9 @@ fn solve_recursively(steps: Vec<Step>) -> isize {
             //     sub_bound,
             //     steps.len()
             // );
-            let volume = solve_iteratively(steps);
-            println!("area {:?} has volume {}", sub_bound, volume);
+            let volume = solve_recursively(steps);
+            // let volume = solve_iteratively(steps);
+            // println!("area {:?} has volume {}", sub_bound, volume);
             volume
         })
         .sum()
@@ -137,13 +138,13 @@ fn solve_iteratively(steps: Vec<Step>) -> isize {
     //     Cube::bounding(steps.iter().map(|step| &step.cube))
     // );
     let mut cubes: Cubes = Cubes::new();
-    println!("Just starting: {}", cubes.len());
+    // println!("Just starting: {}", cubes.len());
     for (i, step) in steps.into_iter().enumerate() {
         cubes = step.cube.subtract_from(cubes);
         if step.additive {
             cubes.push(step.cube);
         }
-        println!("step: {i} -> {}", step.additive);
+        // println!("step: {i} -> {}", step.additive);
         // match step {
         //     Step::On(cube) => {
         //     }
@@ -154,13 +155,13 @@ fn solve_iteratively(steps: Vec<Step>) -> isize {
         // }
         // let all_disjoint = Cube::all_disjoint(&cubes);
         // assert!(all_disjoint);
-        println!(
-            "cubes: {} volume: {}",
-            cubes.len(),
-            volume(&cubes),
-            // all_disjoint,
-            // cubes,
-        );
+        // println!(
+        //     "cubes: {} volume: {}",
+        //     cubes.len(),
+        //     volume(&cubes),
+        //     // all_disjoint,
+        //     // cubes,
+        // );
     }
     volume(&cubes)
 }
@@ -275,22 +276,23 @@ impl Cube {
                 vec![range.start..mid, mid..range.end].into_iter()
             }
         });
-        // debug - begin
-        let x_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
-        let y_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
-        let z_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
-        println!("oct_split: {:?}", self);
-        println!("x_ranges: {:?}", x_ranges);
-        println!("y_ranges: {:?}", y_ranges);
-        println!("z_ranges: {:?}", z_ranges);
-        // debug - end
+        // // debug - begin
+        // let x_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
+        // let y_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
+        // let z_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
+        // println!("oct_split: {:?}", self);
+        // println!("x_ranges: {:?}", x_ranges);
+        // println!("y_ranges: {:?}", y_ranges);
+        // println!("z_ranges: {:?}", z_ranges);
+        // // debug - end
 
         iproduct!(
-            x_ranges.into_iter(),
-            y_ranges.into_iter(),
-            z_ranges.into_iter() // splits.next().unwrap(),
-                                 // splits.next().unwrap(),
-                                 // splits.next().unwrap()
+            // x_ranges.into_iter(),
+            // y_ranges.into_iter(),
+            // z_ranges.into_iter()
+            splits.next().unwrap(),
+            splits.next().unwrap(),
+            splits.next().unwrap()
         )
         .map(|(r1, r2, r3)| Cube([r1, r2, r3]))
         .collect()
