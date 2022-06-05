@@ -207,6 +207,39 @@ impl Cube {
     fn subtract_from(&self, cubes: Cubes) -> Cubes {
         cubes.iter().flat_map(|cube| cube.subtract(self)).collect()
     }
+
+    /// Computes a cube that tightly bounds the input cubes
+    fn bounding(cubes: &Cubes) -> Self {
+        Cube([0, 1, 2].map(|i| {
+            cubes
+                .iter()
+                .map(|Cube(ranges)| ranges[i].clone())
+                .reduce(|r1, r2| r1.start.min(r2.start)..r1.end.max(r2.end))
+                .unwrap()
+        }))
+
+        // cubes
+        //     .iter()
+        //     .reduce(|Cube(ranges_1), Cube(ranges_2)| {
+        //         &Cube([0, 1, 2].map(|i| {
+        //             let _: () = (ranges_1[i].start.min(ranges_2[i].start))
+        //                 ..(ranges_1[i].end.max(ranges_2[i].end));
+        //             todo!("return something")
+        //         }))
+        //     })
+        //     .map(|&cube| cube)
+
+        // ranges_1.zip(ranges_2).map(|(r1, r2)| {
+        // r1.start.min(r2.start)..r1.end.max(r2.end)
+        // }))
+        // }).unwrap()
+        // Cube([0, 1, 2].map(|i| {
+        //     cubes.iter().map(|Cube(cube_ranges)| {
+        //         cube_ranges[i]
+        //     }).reduct(
+        //     (*starts.iter().min().unwrap())..(*ends.iter().max().unwrap())
+        // }))
+    }
 }
 
 struct Step {
@@ -256,7 +289,7 @@ mod test {
     use super::Cube;
 
     #[test]
-    fn contains_works() {
+    fn test_cube_contains() {
         let c1 = Cube([0..2, 0..2, 0..2]);
 
         let c2 = Cube([0..1, 0..2, 0..2]);
@@ -272,6 +305,17 @@ mod test {
         assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
 
         let c2 = Cube([0..2, -1..2, 0..2]);
-        assert!(c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
+        assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
+    }
+
+    #[test]
+    fn test_cube_bounding() {
+        let cubes = vec![Cube([0..1, 1..2, 0..2]), Cube([1..2, 0..1, 1..3])];
+        let bound = Cube([0..2, 0..2, 0..3]);
+        assert_eq!(
+            bound,
+            Cube::bounding(&cubes),
+            "{bound:?} should bound {cubes:?}",
+        );
     }
 }
