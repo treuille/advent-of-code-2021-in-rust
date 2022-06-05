@@ -65,12 +65,13 @@ on x=-41..9,y=-7..43,z=-33..15";
 // - update that list whenever we need to
 
 fn main() {
-    let input = TEST_INPUT_2;
+    // let input = TEST_INPUT_2;
     // let input = TEST_INPUT_1;
-    // let input = include_str!("../../puzzle_inputs/day_22.txt");
-    let instructions = parse_input(input);
-    println!("22a: {}", solve_22a(&instructions));
-    println!("22b: {:?}", solve_22b(instructions));
+    // let input = MY_INPUT_1;
+    let input = include_str!("../../puzzle_inputs/day_22.txt");
+    let steps = parse_input(input);
+    println!("22a: {}", solve_22a(&steps));
+    println!("22b: {:?} (1217808640648260)", solve_22b(steps));
 }
 
 fn solve_22a(steps: &[Step]) -> usize {
@@ -89,10 +90,47 @@ fn solve_22a(steps: &[Step]) -> usize {
 
 type Cubes = Vec<Cube>;
 
-fn solve_22b(steps: Vec<Step>) {
+fn solve_22b(steps: Vec<Step>) -> isize {
+    solve_recursively(steps)
+}
+
+fn solve_recursively(steps: Vec<Step>) -> isize {
+    // Figure out the bounding cube, and pick the longest axis.
+    const RECURSIVE_BOTTOM: usize = 5;
+    if steps.len() <= RECURSIVE_BOTTOM {
+        return solve_iteratively(steps);
+    }
+    let bound = Cube::bounding(steps.iter().map(|step| &step.cube));
+    let sub_bounds = bound.oct_split();
+    if sub_bounds.len() < 2 {
+        return solve_iteratively(steps);
+    }
+    sub_bounds
+        .iter()
+        .map(|sub_bound| {
+            let steps: Vec<Step> = steps
+                .iter()
+                .filter_map(|step| step.clamp(sub_bound))
+                .collect();
+            assert!(
+                steps.iter().all(|step| sub_bound.contains(&step.cube)),
+                "Bounds constraint doesn't hold."
+            );
+            // println!(
+            //     "-> recursing into {:?} with {} steps",
+            //     sub_bound,
+            //     steps.len()
+            // );
+            let volume = solve_iteratively(steps);
+            println!("area {:?} has volume {}", sub_bound, volume);
+            volume
+        })
+        .sum()
+}
+
+fn solve_iteratively(steps: Vec<Step>) -> isize {
     let volume = |cubes: &Cubes| -> isize { cubes.iter().map(Cube::volume).sum() };
-    let bound = Cube([-50..51, -50..51, -50..51]);
-    let steps: Vec<Step> = steps.iter().filter_map(|step| step.clamp(&bound)).collect();
+    // let bound = Cube([-50..51, -50..51, -50..51]);
     // bounding cube: Cube([-49..48, -41..51, -50..47])
     // panic!(
     //     "bounding cube: {:?}",
@@ -124,7 +162,7 @@ fn solve_22b(steps: Vec<Step>) {
             // cubes,
         );
     }
-    todo!("nothing")
+    volume(&cubes)
 }
 
 /// A voxel in 3-space.
@@ -228,8 +266,38 @@ impl Cube {
             }))
         })
     }
+
+    fn oct_split(&self) -> Vec<Self> {
+        let mut splits = self.0.iter().map(|range| match range.end - range.start {
+            len if len <= 10 => vec![range.clone()].into_iter(),
+            len => {
+                let mid = len / 2 + range.start;
+                vec![range.start..mid, mid..range.end].into_iter()
+            }
+        });
+        // debug - begin
+        let x_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
+        let y_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
+        let z_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
+        println!("oct_split: {:?}", self);
+        println!("x_ranges: {:?}", x_ranges);
+        println!("y_ranges: {:?}", y_ranges);
+        println!("z_ranges: {:?}", z_ranges);
+        // debug - end
+
+        iproduct!(
+            x_ranges.into_iter(),
+            y_ranges.into_iter(),
+            z_ranges.into_iter() // splits.next().unwrap(),
+                                 // splits.next().unwrap(),
+                                 // splits.next().unwrap()
+        )
+        .map(|(r1, r2, r3)| Cube([r1, r2, r3]))
+        .collect()
+    }
 }
 
+#[derive(Debug)]
 struct Step {
     additive: bool,
     cube: Cube,
@@ -237,9 +305,9 @@ struct Step {
 
 impl Step {
     fn from_row((mode, min_x, max_x, min_y, max_y, min_z, max_z): Row) -> Self {
-        assert!(min_x < max_x, "{min_x} must be < {max_x}");
-        assert!(min_y < max_y, "{min_y} must be < {max_y}");
-        assert!(min_z < max_z, "{min_z} must be < {max_z}");
+        assert!(min_x <= max_x, "{min_x} must be <= {max_x}");
+        assert!(min_y <= max_y, "{min_y} must be <= {max_y}");
+        assert!(min_z <= max_z, "{min_z} must be <= {max_z}");
         Self {
             additive: mode == "on",
             cube: Cube([min_x..(max_x + 1), min_y..(max_y + 1), min_z..(max_z + 1)]),
@@ -252,14 +320,12 @@ impl Step {
     }
 
     fn clamp(&self, bound: &Cube) -> Option<Self> {
+        let cube = bound.clamp(&self.cube)?;
+        assert!(bound.contains(&cube), "{:?} must contain {:?}", bound, cube);
         Some(Self {
             additive: self.additive,
-            cube: self.cube.clamp(bound)?,
+            cube,
         })
-        // match self {
-        //     Step::On(cube) => cube.clamp().map(Step::On),
-        //     Step::Off(cube) => cube.clamp().map(Step::Off),
-        // }
     }
 }
 
