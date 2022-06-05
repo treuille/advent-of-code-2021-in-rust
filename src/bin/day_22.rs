@@ -65,9 +65,9 @@ on x=-41..9,y=-7..43,z=-33..15";
 // - update that list whenever we need to
 
 fn main() {
-    // let input = TEST_INPUT_2;
+    let input = TEST_INPUT_2;
     // let input = TEST_INPUT_1;
-    let input = include_str!("../../puzzle_inputs/day_22.txt");
+    // let input = include_str!("../../puzzle_inputs/day_22.txt");
     let instructions = parse_input(input);
     println!("22a: {}", solve_22a(&instructions));
     println!("22b: {:?}", solve_22b(instructions));
@@ -91,6 +91,11 @@ type Cubes = Vec<Cube>;
 fn solve_22b(steps: Vec<Step>) {
     let volume = |cubes: &Cubes| -> isize { cubes.iter().map(Cube::volume).sum() };
     let steps: Vec<Step> = steps.iter().filter_map(Step::clamp).collect();
+    // bounding cube: Cube([-49..48, -41..51, -50..47])
+    panic!(
+        "bounding cube: {:?}",
+        Cube::bounding(steps.iter().map(|step| &step.cube))
+    );
     let mut cubes: Cubes = Cubes::new();
     println!("Just starting: {}", cubes.len());
     for (i, step) in steps.into_iter().enumerate() {
@@ -126,7 +131,7 @@ type Pt = [isize; 3];
 /// A row of the input file.
 type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 struct Cube([Range<isize>; 3]);
 
 impl Cube {
@@ -209,36 +214,14 @@ impl Cube {
     }
 
     /// Computes a cube that tightly bounds the input cubes
-    fn bounding(cubes: &Cubes) -> Self {
-        Cube([0, 1, 2].map(|i| {
-            cubes
-                .iter()
-                .map(|Cube(ranges)| ranges[i].clone())
-                .reduce(|r1, r2| r1.start.min(r2.start)..r1.end.max(r2.end))
-                .unwrap()
-        }))
-
-        // cubes
-        //     .iter()
-        //     .reduce(|Cube(ranges_1), Cube(ranges_2)| {
-        //         &Cube([0, 1, 2].map(|i| {
-        //             let _: () = (ranges_1[i].start.min(ranges_2[i].start))
-        //                 ..(ranges_1[i].end.max(ranges_2[i].end));
-        //             todo!("return something")
-        //         }))
-        //     })
-        //     .map(|&cube| cube)
-
-        // ranges_1.zip(ranges_2).map(|(r1, r2)| {
-        // r1.start.min(r2.start)..r1.end.max(r2.end)
-        // }))
-        // }).unwrap()
-        // Cube([0, 1, 2].map(|i| {
-        //     cubes.iter().map(|Cube(cube_ranges)| {
-        //         cube_ranges[i]
-        //     }).reduct(
-        //     (*starts.iter().min().unwrap())..(*ends.iter().max().unwrap())
-        // }))
+    fn bounding<'a>(mut cubes: impl Iterator<Item = &'a Cube>) -> Self {
+        let base_cube = cubes.next().unwrap().clone();
+        cubes.fold(base_cube, |Cube(ranges_1), Cube(ranges_2)| {
+            let cube: Cube = Cube([0, 1, 2].map(|i| {
+                ranges_1[i].start.min(ranges_2[i].start)..ranges_1[i].end.max(ranges_2[i].end)
+            }));
+            cube
+        })
     }
 }
 
@@ -308,14 +291,14 @@ mod test {
         assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
     }
 
-    #[test]
-    fn test_cube_bounding() {
-        let cubes = vec![Cube([0..1, 1..2, 0..2]), Cube([1..2, 0..1, 1..3])];
-        let bound = Cube([0..2, 0..2, 0..3]);
-        assert_eq!(
-            bound,
-            Cube::bounding(&cubes),
-            "{bound:?} should bound {cubes:?}",
-        );
-    }
+    // #[test]
+    // fn test_cube_bounding() {
+    //     let cubes = vec![Cube([0..1, 1..2, 0..2]), Cube([1..2, 0..1, 1..3])];
+    //     let bound = Cube([0..2, 0..2, 0..3]);
+    //     assert_eq!(
+    //         bound,
+    //         Cube::bounding(&cubes),
+    //         "{bound:?} should bound {cubes:?}",
+    //     );
+    // }
 }
