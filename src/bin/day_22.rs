@@ -66,28 +66,11 @@ on x=-41..9,y=-7..43,z=-33..15";
 
 fn main() {
     // let input = TEST_INPUT_2;
-    let input = TEST_INPUT_1;
-    // let input = include_str!("../../puzzle_inputs/day_22.txt");
+    // let input = TEST_INPUT_1;
+    let input = include_str!("../../puzzle_inputs/day_22.txt");
     let instructions = parse_input(input);
     println!("22a: {}", solve_22a(&instructions));
     println!("22b: {:?}", solve_22b(instructions));
-
-    // let cubes = vec![
-    // k
-    //     Cube {
-    //         additive: true,
-    //         xs: 1..=10,
-    //         ys: 1..=10,
-    //         zs: 1..=10,
-    //     },
-    //     Cube {
-    //         additive: true,
-    //         xs: 20..=30,
-    //         ys: 20..=30,
-    //         zs: 20..=30,
-    //     },
-    // ];
-    // println!("22b: {}", solve_22b(&cubes));
 }
 
 fn solve_22a(steps: &[Step]) -> usize {
@@ -111,26 +94,25 @@ fn solve_22b(steps: Vec<Step>) {
     let mut cubes: Cubes = Cubes::new();
     println!("Just starting: {}", cubes.len());
     for (i, step) in steps.into_iter().enumerate() {
-        println!("\nstep: {} cubes: {}", i, cubes.len());
         match step {
             Step::On(cube) => {
                 cubes = cube.subtract_from(cubes);
                 cubes.push(cube);
-                println!("-> on");
+                println!("step: {i} -> on");
             }
             Step::Off(cube) => {
                 cubes = cube.subtract_from(cubes);
-                println!("-> off");
+                println!("step: {i} -> off");
             }
         }
-        let all_disjoint = Cube::all_disjoint(&cubes);
-        assert!(all_disjoint);
+        // let all_disjoint = Cube::all_disjoint(&cubes);
+        // assert!(all_disjoint);
         println!(
-            "cubes: {} volume: {} all_disjoint: {} -> {:?}",
+            "cubes: {} volume: {}",
             cubes.len(),
             volume(&cubes),
-            all_disjoint,
-            cubes,
+            // all_disjoint,
+            // cubes,
         );
     }
     todo!("nothing")
@@ -189,6 +171,28 @@ impl Cube {
             })
     }
 
+    /// Subtracts the other cube from this, returning the remaining fragments.
+    fn subtract(&self, other: &Self) -> Cubes {
+        if self.disjoint(other) {
+            return vec![Cube(self.0.clone())];
+        }
+        let mut coords = self.0.iter().zip(other.0.iter()).map(|(s_range, o_range)| {
+            [s_range.start, s_range.end, o_range.start, o_range.end]
+                .into_iter()
+                .unique()
+                .sorted()
+                .tuple_windows()
+                .map(|(start, end)| start..end)
+        });
+        let coords_x = coords.next().unwrap();
+        let coords_y = coords.next().unwrap();
+        let coords_z = coords.next().unwrap();
+        iproduct!(coords_x, coords_y, coords_z)
+            .map(|(range_x, range_y, range_z)| Cube([range_x, range_y, range_z]))
+            .filter(|sub_cube| self.contains(sub_cube) && !other.contains(sub_cube))
+            .collect()
+    }
+
     /// Are all these cubes dijoint?
     fn all_disjoint(cubes: &Cubes) -> bool {
         cubes
@@ -199,55 +203,7 @@ impl Cube {
 
     /// Subract this cube from the set of cubes we have here.
     fn subtract_from(&self, cubes: Cubes) -> Cubes {
-        cubes
-            .iter()
-            .flat_map(|cube| {
-                let mut coords = self.0.iter().zip(cube.0.iter()).map(|(s_range, c_range)| {
-                    [
-                        Some(s_range.start),
-                        Some(s_range.end),
-                        (!s_range.contains(&c_range.start)).then(|| c_range.start),
-                        (!s_range.contains(&c_range.end)).then(|| c_range.end),
-                    ]
-                    .into_iter()
-                    .flatten()
-                    .sorted()
-                    .tuple_windows()
-                    .map(|(start, end)| start..end)
-                });
-                let coords_x = coords.next().unwrap();
-                let coords_y = coords.next().unwrap();
-                let coords_z = coords.next().unwrap();
-                // debug - begin
-                println!("s_ranges: {:?}", self.0);
-                println!("c_ranges: {:?}", cube.0);
-
-                let coords_x: Vec<Range<isize>> = coords_x.collect();
-                let coords_y: Vec<Range<isize>> = coords_y.collect();
-                let coords_z: Vec<Range<isize>> = coords_z.collect();
-
-                // TODO: Print these out!
-                println!("coords_x: {:?}", coords_x);
-                println!("coords_y: {:?}", coords_y);
-                println!("coords_z: {:?}", coords_z);
-                // debug - end
-                iproduct!(
-                    coords_x.into_iter(),
-                    coords_y.into_iter(),
-                    coords_z.into_iter()
-                )
-                .map(|(range_x, range_y, range_z)| {
-                    let sub_cube = Cube([range_x, range_y, range_z]);
-                    println!(
-                        "sub_cube: {:?} keep: {}",
-                        sub_cube.0,
-                        cube.contains(&sub_cube) && !self.contains(&sub_cube)
-                    );
-                    sub_cube
-                })
-                .filter(|sub_cube| cube.contains(sub_cube) && !self.contains(sub_cube))
-            })
-            .collect()
+        cubes.iter().flat_map(|cube| cube.subtract(self)).collect()
     }
 }
 
