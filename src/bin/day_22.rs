@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_imports)]
+#![allow(dead_code, unused_imports, clippy::needless_collect)]
 
 use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, Itertools};
@@ -66,11 +66,11 @@ on x=-41..9,y=-7..43,z=-33..15";
 
 fn main() {
     // let input = TEST_INPUT_2;
-    let input = include_str!("../../puzzle_inputs/day_22.txt");
+    let input = TEST_INPUT_1;
+    // let input = include_str!("../../puzzle_inputs/day_22.txt");
     let instructions = parse_input(input);
     println!("22a: {}", solve_22a(&instructions));
-
-    // println!("22a: {:?}", solve_22b(instructions));
+    println!("22b: {:?}", solve_22b(instructions));
 
     // let cubes = vec![
     // k
@@ -103,22 +103,35 @@ fn solve_22a(steps: &[Step]) -> usize {
     grid.len()
 }
 
-type Cubes = Vec<Rc<Cube>>;
+type Cubes = Vec<Cube>;
 
 fn solve_22b(steps: Vec<Step>) {
+    let volume = |cubes: &Cubes| -> isize { cubes.iter().map(Cube::volume).sum() };
+    let steps: Vec<Step> = steps.iter().filter_map(Step::clamp).collect();
     let mut cubes: Cubes = Cubes::new();
     println!("Just starting: {}", cubes.len());
-    for step in steps {
+    for (i, step) in steps.into_iter().enumerate() {
+        println!("\nstep: {} cubes: {}", i, cubes.len());
         match step {
             Step::On(cube) => {
                 cubes = cube.subtract_from(cubes);
-                cubes.push(Rc::new(cube));
+                cubes.push(cube);
+                println!("-> on");
             }
             Step::Off(cube) => {
                 cubes = cube.subtract_from(cubes);
+                println!("-> off");
             }
         }
-        panic!("Finished first step: {}", cubes.len());
+        let all_disjoint = Cube::all_disjoint(&cubes);
+        assert!(all_disjoint);
+        println!(
+            "cubes: {} volume: {} all_disjoint: {} -> {:?}",
+            cubes.len(),
+            volume(&cubes),
+            all_disjoint,
+            cubes,
+        );
     }
     todo!("nothing")
 }
@@ -138,6 +151,10 @@ impl Cube {
         iproduct!(xs.clone(), ys.clone(), zs.clone()).map(|(x, y, z)| [x, y, z])
     }
 
+    fn volume(&self) -> isize {
+        self.0.iter().map(|range| range.end - range.start).product()
+    }
+
     fn clamp(&self) -> Option<Self> {
         let mut clamped_ranges = [0..0, 0..0, 0..0];
         for (clamped_range, range) in clamped_ranges.iter_mut().zip(self.0.iter()) {
@@ -155,46 +172,82 @@ impl Cube {
     }
 
     /// Are these two cubes disjoint?
-    fn disjoint(&self, _other: &Self) -> bool {
-        todo!("disjoint")
-        // self.0.iter().zip(other.0).all(|(range_1, range_2)| {
-        //     range_1.end() < range_2.start() || range_2.end() < range_1.start()
-        // })
+    fn disjoint(&self, other: &Self) -> bool {
+        self.0
+            .iter()
+            .zip(other.0.iter())
+            .all(|(range_1, range_2)| range_1.end <= range_2.start || range_2.end <= range_1.start)
+    }
+
+    /// Does this cube contain the other?
+    fn contains(&self, other: &Self) -> bool {
+        self.0
+            .iter()
+            .zip(other.0.iter())
+            .all(|(self_range, other_range)| {
+                other_range.start >= self_range.start && other_range.end <= self_range.end
+            })
     }
 
     /// Are all these cubes dijoint?
-    fn all_disjoint(_cubes: Cubes) -> bool {
-        todo!("all_disjoint")
-        // // TODO: != -> ==
-        // cubes
-        //     .iter()
-        //     .zip(cubes.iter())
-        //     .all(|(cube_1, cube_2)| cube_1 != cube_2 || cube_1.disjoint(cube_2))
+    fn all_disjoint(cubes: &Cubes) -> bool {
+        cubes
+            .iter()
+            .zip(cubes.iter())
+            .all(|(cube_1, cube_2)| cube_1 == cube_2 || cube_1.disjoint(cube_2))
     }
 
     /// Subract this cube from the set of cubes we have here.
-    fn subtract_from(&self, _cubes: Cubes) -> Cubes {
-        todo!("subtract_from")
-        // for cube in cubes {
-        //     let _coords_by_dim: Vec<Vec<isize>> = self
-        //         .0
-        //         .iter()
-        //         .zip(cube.0.iter())
-        //         .map(|(s_range, c_range)| {
-        //             match (
-        //                 *s_range.start(),
-        //                 *s_range.end(),
-        //                 *c_range.start(),
-        //                 *c_range.end(),
-        //             ) {
-        //                 (s1, s2, c1, c2) if s2 < c1 => vec![s1, s2, c1, c2],
-        //                 _ => panic!("Haven't finished this case yet."),
-        //             }
-        //         })
-        //         .collect();
-        //     // for  in
-        //     // }
-        // }
+    fn subtract_from(&self, cubes: Cubes) -> Cubes {
+        cubes
+            .iter()
+            .flat_map(|cube| {
+                let mut coords = self.0.iter().zip(cube.0.iter()).map(|(s_range, c_range)| {
+                    [
+                        Some(s_range.start),
+                        Some(s_range.end),
+                        (!s_range.contains(&c_range.start)).then(|| c_range.start),
+                        (!s_range.contains(&c_range.end)).then(|| c_range.end),
+                    ]
+                    .into_iter()
+                    .flatten()
+                    .sorted()
+                    .tuple_windows()
+                    .map(|(start, end)| start..end)
+                });
+                let coords_x = coords.next().unwrap();
+                let coords_y = coords.next().unwrap();
+                let coords_z = coords.next().unwrap();
+                // debug - begin
+                println!("s_ranges: {:?}", self.0);
+                println!("c_ranges: {:?}", cube.0);
+
+                let coords_x: Vec<Range<isize>> = coords_x.collect();
+                let coords_y: Vec<Range<isize>> = coords_y.collect();
+                let coords_z: Vec<Range<isize>> = coords_z.collect();
+
+                // TODO: Print these out!
+                println!("coords_x: {:?}", coords_x);
+                println!("coords_y: {:?}", coords_y);
+                println!("coords_z: {:?}", coords_z);
+                // debug - end
+                iproduct!(
+                    coords_x.into_iter(),
+                    coords_y.into_iter(),
+                    coords_z.into_iter()
+                )
+                .map(|(range_x, range_y, range_z)| {
+                    let sub_cube = Cube([range_x, range_y, range_z]);
+                    println!(
+                        "sub_cube: {:?} keep: {}",
+                        sub_cube.0,
+                        cube.contains(&sub_cube) && !self.contains(&sub_cube)
+                    );
+                    sub_cube
+                })
+                .filter(|sub_cube| cube.contains(sub_cube) && !self.contains(sub_cube))
+            })
+            .collect()
     }
 }
 
@@ -228,4 +281,29 @@ fn parse_input(input: &str) -> Vec<Step> {
     regex += r",z=(\-?\d+)..(\-?\d+)";
     let re = Regex::new(regex.as_str()).unwrap();
     parse_lines(re, input).map(Step::from_row).collect()
+}
+
+#[cfg(test)]
+mod test {
+    use super::Cube;
+
+    #[test]
+    fn contains_works() {
+        let c1 = Cube([0..2, 0..2, 0..2]);
+
+        let c2 = Cube([0..1, 0..2, 0..2]);
+        assert!(c1.contains(&c2), "{:?} should contain {:?}", c1, c2);
+
+        let c2 = Cube([1..2, 0..2, 0..2]);
+        assert!(c1.contains(&c2), "{:?} should contain {:?}", c1, c2);
+
+        let c2 = Cube([0..2, 0..2, 0..2]);
+        assert!(c1.contains(&c2), "{:?} should contain {:?}", c1, c2);
+
+        let c2 = Cube([1..3, 0..2, 0..2]);
+        assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
+
+        let c2 = Cube([0..2, -1..2, 0..2]);
+        assert!(c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
+    }
 }
