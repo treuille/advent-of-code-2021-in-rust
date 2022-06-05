@@ -78,9 +78,9 @@ fn solve_22a(steps: &[Step]) -> usize {
     let mut grid: HashSet<Pt> = HashSet::new();
     let ignore = |_: bool| ();
     for step in steps {
-        match step {
-            Step::On(cube) => cube.pts().for_each(|pt| ignore(grid.insert(pt))),
-            Step::Off(cube) => cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
+        match step.additive {
+            true => step.cube.pts().for_each(|pt| ignore(grid.insert(pt))),
+            false => step.cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
         }
     }
     grid.len()
@@ -94,17 +94,19 @@ fn solve_22b(steps: Vec<Step>) {
     let mut cubes: Cubes = Cubes::new();
     println!("Just starting: {}", cubes.len());
     for (i, step) in steps.into_iter().enumerate() {
-        match step {
-            Step::On(cube) => {
-                cubes = cube.subtract_from(cubes);
-                cubes.push(cube);
-                println!("step: {i} -> on");
-            }
-            Step::Off(cube) => {
-                cubes = cube.subtract_from(cubes);
-                println!("step: {i} -> off");
-            }
+        cubes = step.cube.subtract_from(cubes);
+        if step.additive {
+            cubes.push(step.cube);
         }
+        println!("step: {i} -> {}", step.additive);
+        // match step {
+        //     Step::On(cube) => {
+        //     }
+        //     Step::Off(cube) => {
+        //         cubes = cube.subtract_from(cubes);
+        //         println!("step: {i} -> off");
+        //     }
+        // }
         // let all_disjoint = Cube::all_disjoint(&cubes);
         // assert!(all_disjoint);
         println!(
@@ -208,25 +210,35 @@ impl Cube {
 }
 
 struct Step {
-    On(Cube),
-    Off(Cube),
+    additive: bool,
+    cube: Cube,
 }
 
 impl Step {
     fn from_row((mode, min_x, max_x, min_y, max_y, min_z, max_z): Row) -> Self {
-        let cube = Cube([min_x..(max_x + 1), min_y..(max_y + 1), min_z..(max_z + 1)]);
-        match mode {
-            "on" => Step::On(cube),
-            "off" => Step::Off(cube),
-            _ => panic!("Unexpected mode: \"{mode}\""),
+        assert!(min_x < max_x, "{min_x} must be < {max_x}");
+        assert!(min_y < max_y, "{min_y} must be < {max_y}");
+        assert!(min_z < max_z, "{min_z} must be < {max_z}");
+        Self {
+            additive: mode == "on",
+            cube: Cube([min_x..(max_x + 1), min_y..(max_y + 1), min_z..(max_z + 1)]),
+            // let cube =
+            // match mode {
+            //     "on" => Step::On(cube),
+            //     "off" => Step::Off(cube),
+            //     _ => panic!("Unexpected mode: \"{mode}\""),
         }
     }
 
     fn clamp(&self) -> Option<Self> {
-        match self {
-            Step::On(cube) => cube.clamp().map(Step::On),
-            Step::Off(cube) => cube.clamp().map(Step::Off),
-        }
+        Some(Self {
+            additive: self.additive,
+            cube: self.cube.clamp()?,
+        })
+        // match self {
+        //     Step::On(cube) => cube.clamp().map(Step::On),
+        //     Step::Off(cube) => cube.clamp().map(Step::Off),
+        // }
     }
 }
 
