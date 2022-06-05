@@ -92,10 +92,10 @@ fn solve_22b(steps: Vec<Step>) {
     let volume = |cubes: &Cubes| -> isize { cubes.iter().map(Cube::volume).sum() };
     let steps: Vec<Step> = steps.iter().filter_map(Step::clamp).collect();
     // bounding cube: Cube([-49..48, -41..51, -50..47])
-    panic!(
-        "bounding cube: {:?}",
-        Cube::bounding(steps.iter().map(|step| &step.cube))
-    );
+    // panic!(
+    //     "bounding cube: {:?}",
+    //     Cube::bounding(steps.iter().map(|step| &step.cube))
+    // );
     let mut cubes: Cubes = Cubes::new();
     println!("Just starting: {}", cubes.len());
     for (i, step) in steps.into_iter().enumerate() {
@@ -217,10 +217,11 @@ impl Cube {
     fn bounding<'a>(mut cubes: impl Iterator<Item = &'a Cube>) -> Self {
         let base_cube = cubes.next().unwrap().clone();
         cubes.fold(base_cube, |Cube(ranges_1), Cube(ranges_2)| {
-            let cube: Cube = Cube([0, 1, 2].map(|i| {
-                ranges_1[i].start.min(ranges_2[i].start)..ranges_1[i].end.max(ranges_2[i].end)
-            }));
-            cube
+            Cube([0, 1, 2].map(|i| {
+                let bound_start = isize::min(ranges_1[i].start, ranges_2[i].start);
+                let bound_end = isize::max(ranges_1[i].end, ranges_2[i].end);
+                bound_start..bound_end
+            }))
         })
     }
 }
@@ -291,14 +292,14 @@ mod test {
         assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
     }
 
-    // #[test]
-    // fn test_cube_bounding() {
-    //     let cubes = vec![Cube([0..1, 1..2, 0..2]), Cube([1..2, 0..1, 1..3])];
-    //     let bound = Cube([0..2, 0..2, 0..3]);
-    //     assert_eq!(
-    //         bound,
-    //         Cube::bounding(&cubes),
-    //         "{bound:?} should bound {cubes:?}",
-    //     );
-    // }
+    #[test]
+    fn test_cube_bounding() {
+        let cubes = vec![Cube([0..1, 1..2, 0..2]), Cube([1..2, 0..1, 1..3])];
+        let bound = Cube([0..2, 0..2, 0..3]);
+        assert_eq!(
+            bound,
+            Cube::bounding(cubes.iter()),
+            "{bound:?} should bound {cubes:?}",
+        );
+    }
 }
