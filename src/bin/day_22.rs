@@ -207,7 +207,7 @@ impl Cube {
     }
 }
 
-enum Step {
+struct Step {
     On(Cube),
     Off(Cube),
 }
