@@ -2,7 +2,7 @@ use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, izip, Itertools};
 use regex::Regex;
 use std::iter::Iterator;
-use std::ops::Range;
+use std::ops;
 
 fn main() {
     let input = include_str!("../../puzzle_inputs/day_22.txt");
@@ -13,40 +13,31 @@ fn main() {
 
 fn solve_22a(steps: &[Step]) -> isize {
     let bound = Cube([-50..51, -50..51, -50..51]);
-    solve_recursively(Step::clamp(steps, &bound))
+    solve(Step::clamp(steps, &bound))
 }
 
 fn solve_22b(steps: Vec<Step>) -> isize {
-    solve_recursively(steps)
+    solve(steps)
 }
 
-fn solve_recursively(steps: Vec<Step>) -> isize {
-    const RECURSIVE_BOTTOM: usize = 40;
-    if steps.len() <= RECURSIVE_BOTTOM {
-        return solve_iteratively(steps);
-    }
+fn solve(steps: Vec<Step>) -> isize {
+    let total_volume = |cubes: Vec<Cube>| cubes.iter().map(Cube::volume).sum();
     match Cube::split(steps.iter().map(|step| &step.cube)) {
+        // Try to solve recursively
         Some(sub_bounds) => sub_bounds
             .iter()
-            .map(|sub_bound| solve_recursively(Step::clamp(&steps, sub_bound)))
+            .map(|sub_bound| solve(Step::clamp(&steps, sub_bound)))
             .sum(),
-        None => solve_iteratively(steps),
+
+        // Otherwise, solve iteratively
+        None => total_volume(steps.iter().fold(Vec::new(), Cube::apply_step)),
     }
 }
 
-fn solve_iteratively(steps: Vec<Step>) -> isize {
-    let mut cubes: Vec<Cube> = Vec::new();
-    for step in steps {
-        cubes = step.cube.subtract_from(&cubes);
-        if step.additive {
-            cubes.push(step.cube);
-        }
-    }
-    cubes.iter().map(Cube::volume).sum()
-}
+type Range = ops::Range<isize>;
 
 #[derive(Clone)]
-struct Cube([Range<isize>; 3]);
+struct Cube([Range; 3]);
 
 impl Cube {
     /// Returns the voluem of this cube.
@@ -74,20 +65,14 @@ impl Cube {
 
     /// Are these two cubes disjoint?
     fn disjoint(&self, other: &Self) -> bool {
-        self.0
-            .iter()
-            .zip(other.0.iter())
-            .any(|(range_1, range_2)| range_1.end <= range_2.start || range_2.end <= range_1.start)
+        let range_disjoint = |(r1, r2): (&Range, &Range)| r1.end <= r2.start || r2.end <= r1.start;
+        self.0.iter().zip(other.0.iter()).any(range_disjoint)
     }
 
     /// Does this cube contain the other?
     fn contains(&self, other: &Self) -> bool {
-        self.0
-            .iter()
-            .zip(other.0.iter())
-            .all(|(self_range, other_range)| {
-                other_range.start >= self_range.start && other_range.end <= self_range.end
-            })
+        let range_contains = |(r1, r2): (&Range, &Range)| r2.start >= r1.start && r2.end <= r1.end;
+        self.0.iter().zip(other.0.iter()).all(range_contains)
     }
 
     /// Subtracts the other cube from this, returning the remaining fragments.
@@ -95,8 +80,8 @@ impl Cube {
         if self.disjoint(other) {
             return vec![Cube(self.0.clone())];
         }
-        let mut coords = self.0.iter().zip(other.0.iter()).map(|(s_range, o_range)| {
-            [s_range.start, s_range.end, o_range.start, o_range.end]
+        let mut coords = self.0.iter().zip(other.0.iter()).map(|(r1, r2)| {
+            [r1.start, r1.end, r2.start, r2.end]
                 .into_iter()
                 .unique()
                 .sorted()
@@ -112,9 +97,12 @@ impl Cube {
             .collect()
     }
 
-    /// Subract this cube from the set of cubes we have here.
-    fn subtract_from(&self, cubes: &[Cube]) -> Vec<Cube> {
-        cubes.iter().flat_map(|cube| cube.subtract(self)).collect()
+    fn apply_step(cubes: Vec<Self>, step: &Step) -> Vec<Self> {
+        cubes
+            .iter()
+            .flat_map(|cube| cube.subtract(&step.cube))
+            .chain(step.additive.then(|| step.cube.clone()))
+            .collect()
     }
 
     /// Computes a cube that tightly bounds the input cubes
@@ -134,6 +122,9 @@ impl Cube {
     where
         CubeIter: Iterator<Item = &'a Cube> + Clone,
     {
+        if cubes.clone().count() <= 40 {
+            return None;
+        }
         let Cube(bounds) = Self::bounding(cubes.clone());
         let (max_len, axis) = bounds
             .iter()
