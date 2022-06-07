@@ -1,12 +1,8 @@
-#![allow(dead_code, unused_imports, clippy::needless_collect)]
-
 use aoc::parse_regex::parse_lines;
 use itertools::{iproduct, izip, Itertools};
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
 use std::ops::Range;
-use std::rc::Rc;
 
 fn main() {
     let input = include_str!("../../puzzle_inputs/day_22.txt");
@@ -15,115 +11,45 @@ fn main() {
     println!("22b: {:?} (1217808640648260)", solve_22b(steps));
 }
 
-fn solve_22a(steps: &[Step]) -> usize {
+fn solve_22a(steps: &[Step]) -> isize {
     let bound = Cube([-50..51, -50..51, -50..51]);
-    let steps = Step::clamp(steps, &bound); // Vec<Step> = steps.iter().filter_map(|step| step.clamp(&bound)).collect();
-    let mut grid: HashSet<Pt> = HashSet::new();
-    let ignore = |_: bool| ();
-    for step in steps {
-        match step.additive {
-            true => step.cube.pts().for_each(|pt| ignore(grid.insert(pt))),
-            false => step.cube.pts().for_each(|pt| ignore(grid.remove(&pt))),
-        }
-    }
-    grid.len()
+    solve_recursively(Step::clamp(steps, &bound))
 }
-
-type Cubes = Vec<Cube>;
 
 fn solve_22b(steps: Vec<Step>) -> isize {
     solve_recursively(steps)
 }
 
 fn solve_recursively(steps: Vec<Step>) -> isize {
-    // Figure out the bounding cube, and pick the longest axis.
-    const RECURSIVE_BOTTOM: usize = 10;
+    const RECURSIVE_BOTTOM: usize = 40;
     if steps.len() <= RECURSIVE_BOTTOM {
         return solve_iteratively(steps);
     }
-    let bound = Cube::bounding(steps.iter().map(|step| &step.cube));
-    let sub_bounds = bound.oct_split();
-    if sub_bounds.len() < 2 {
-        return solve_iteratively(steps);
+    match Cube::split(steps.iter().map(|step| &step.cube)) {
+        Some(sub_bounds) => sub_bounds
+            .iter()
+            .map(|sub_bound| solve_recursively(Step::clamp(&steps, sub_bound)))
+            .sum(),
+        None => solve_iteratively(steps),
     }
-    sub_bounds
-        .iter()
-        .map(|sub_bound| {
-            let steps = Step::clamp(&steps, sub_bound);
-            // Vec<Step> = steps.iter().filter_map(|step| step.clamp(&bound)).collect();
-            // let steps: Vec<Step> = steps
-            //     .iter()
-            //     .filter_map(|step| step.clamp(sub_bound))
-            //     .collect();
-            // assert!(
-            //     steps.iter().all(|step| sub_bound.contains(&step.cube)),
-            //     "Bounds constraint doesn't hold."
-            // );
-            // println!(
-            //     "-> recursing into {:?} with {} steps",
-            //     sub_bound,
-            //     steps.len()
-            // );
-            let volume = solve_recursively(steps);
-            // let volume = solve_iteratively(steps);
-            // println!("area {:?} has volume {}", sub_bound, volume);
-            volume
-        })
-        .sum()
 }
 
 fn solve_iteratively(steps: Vec<Step>) -> isize {
-    let volume = |cubes: &Cubes| -> isize { cubes.iter().map(Cube::volume).sum() };
-    // let bound = Cube([-50..51, -50..51, -50..51]);
-    // bounding cube: Cube([-49..48, -41..51, -50..47])
-    // panic!(
-    //     "bounding cube: {:?}",
-    //     Cube::bounding(steps.iter().map(|step| &step.cube))
-    // );
-    let mut cubes: Cubes = Cubes::new();
-    // println!("Just starting: {}", cubes.len());
-    for (i, step) in steps.into_iter().enumerate() {
-        cubes = step.cube.subtract_from(cubes);
+    let mut cubes: Vec<Cube> = Vec::new();
+    for step in steps {
+        cubes = step.cube.subtract_from(&cubes);
         if step.additive {
             cubes.push(step.cube);
         }
-        // println!("step: {i} -> {}", step.additive);
-        // match step {
-        //     Step::On(cube) => {
-        //     }
-        //     Step::Off(cube) => {
-        //         cubes = cube.subtract_from(cubes);
-        //         println!("step: {i} -> off");
-        //     }
-        // }
-        // let all_disjoint = Cube::all_disjoint(&cubes);
-        // assert!(all_disjoint);
-        // println!(
-        //     "cubes: {} volume: {}",
-        //     cubes.len(),
-        //     volume(&cubes),
-        //     // all_disjoint,
-        //     // cubes,
-        // );
     }
-    volume(&cubes)
+    cubes.iter().map(Cube::volume).sum()
 }
 
-/// A voxel in 3-space.
-type Pt = [isize; 3];
-
-/// A row of the input file.
-type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
-
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Clone)]
 struct Cube([Range<isize>; 3]);
 
 impl Cube {
-    fn pts(&self) -> impl Iterator<Item = Pt> {
-        let Cube([xs, ys, zs]) = self;
-        iproduct!(xs.clone(), ys.clone(), zs.clone()).map(|(x, y, z)| [x, y, z])
-    }
-
+    /// Returns the voluem of this cube.
     fn volume(&self) -> isize {
         self.0.iter().map(|range| range.end - range.start).product()
     }
@@ -151,7 +77,7 @@ impl Cube {
         self.0
             .iter()
             .zip(other.0.iter())
-            .all(|(range_1, range_2)| range_1.end <= range_2.start || range_2.end <= range_1.start)
+            .any(|(range_1, range_2)| range_1.end <= range_2.start || range_2.end <= range_1.start)
     }
 
     /// Does this cube contain the other?
@@ -165,7 +91,7 @@ impl Cube {
     }
 
     /// Subtracts the other cube from this, returning the remaining fragments.
-    fn subtract(&self, other: &Self) -> Cubes {
+    fn subtract(&self, other: &Self) -> Vec<Self> {
         if self.disjoint(other) {
             return vec![Cube(self.0.clone())];
         }
@@ -186,16 +112,8 @@ impl Cube {
             .collect()
     }
 
-    /// Are all these cubes dijoint?
-    fn all_disjoint(cubes: &Cubes) -> bool {
-        cubes
-            .iter()
-            .zip(cubes.iter())
-            .all(|(cube_1, cube_2)| cube_1 == cube_2 || cube_1.disjoint(cube_2))
-    }
-
     /// Subract this cube from the set of cubes we have here.
-    fn subtract_from(&self, cubes: Cubes) -> Cubes {
+    fn subtract_from(&self, cubes: &[Cube]) -> Vec<Cube> {
         cubes.iter().flat_map(|cube| cube.subtract(self)).collect()
     }
 
@@ -211,56 +129,51 @@ impl Cube {
         })
     }
 
-    fn oct_split(&self) -> Vec<Self> {
-        let mut splits = self.0.iter().map(|range| match range.end - range.start {
-            len if len <= 10 => vec![range.clone()].into_iter(),
-            len => {
-                let mid = len / 2 + range.start;
-                vec![range.start..mid, mid..range.end].into_iter()
-            }
-        });
-        // // debug - begin
-        // let x_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
-        // let y_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
-        // let z_ranges: Vec<Range<isize>> = splits.next().unwrap().collect();
-        // println!("oct_split: {:?}", self);
-        // println!("x_ranges: {:?}", x_ranges);
-        // println!("y_ranges: {:?}", y_ranges);
-        // println!("z_ranges: {:?}", z_ranges);
-        // // debug - end
-
-        iproduct!(
-            // x_ranges.into_iter(),
-            // y_ranges.into_iter(),
-            // z_ranges.into_iter()
-            splits.next().unwrap(),
-            splits.next().unwrap(),
-            splits.next().unwrap()
-        )
-        .map(|(r1, r2, r3)| Cube([r1, r2, r3]))
-        .collect()
+    /// Splits this set of cubes two, or None if no such good split can be found.
+    fn split<'a, CubeIter>(cubes: CubeIter) -> Option<[Cube; 2]>
+    where
+        CubeIter: Iterator<Item = &'a Cube> + Clone,
+    {
+        let Cube(bounds) = Self::bounding(cubes.clone());
+        let (max_len, axis) = bounds
+            .iter()
+            .enumerate()
+            .map(|(i, r)| (r.end - r.start, i))
+            .max()
+            .unwrap();
+        if max_len <= 10 {
+            return None;
+        }
+        let mut coords: Vec<isize> = cubes
+            .flat_map(|Cube(ranges)| [ranges[axis].start, ranges[axis].end])
+            .collect();
+        coords.sort_unstable();
+        let median = coords[coords.len() / 2];
+        if median == bounds[axis].start || median == bounds[axis].end {
+            return None;
+        }
+        let mut split_bound_1 = bounds.clone();
+        let mut split_bound_2 = bounds.clone();
+        split_bound_1[axis].end = median;
+        split_bound_2[axis].start = median;
+        Some([Cube(split_bound_1), Cube(split_bound_2)])
     }
 }
 
-#[derive(Debug)]
+/// A row of the input file.
+type Row<'a> = (&'a str, isize, isize, isize, isize, isize, isize);
+
 struct Step {
     additive: bool,
     cube: Cube,
 }
 
 impl Step {
+    /// Parse out a Step from a row of the input file.
     fn from_row((mode, min_x, max_x, min_y, max_y, min_z, max_z): Row) -> Self {
-        assert!(min_x <= max_x, "{min_x} must be <= {max_x}");
-        assert!(min_y <= max_y, "{min_y} must be <= {max_y}");
-        assert!(min_z <= max_z, "{min_z} must be <= {max_z}");
         Self {
             additive: mode == "on",
             cube: Cube([min_x..(max_x + 1), min_y..(max_y + 1), min_z..(max_z + 1)]),
-            // let cube =
-            // match mode {
-            //     "on" => Step::On(cube),
-            //     "off" => Step::Off(cube),
-            //     _ => panic!("Unexpected mode: \"{mode}\""),
         }
     }
 
@@ -285,40 +198,4 @@ fn parse_input(input: &str) -> Vec<Step> {
     regex += r",z=(\-?\d+)..(\-?\d+)";
     let re = Regex::new(regex.as_str()).unwrap();
     parse_lines(re, input).map(Step::from_row).collect()
-}
-
-#[cfg(test)]
-mod test {
-    use super::Cube;
-
-    #[test]
-    fn test_cube_contains() {
-        let c1 = Cube([0..2, 0..2, 0..2]);
-
-        let c2 = Cube([0..1, 0..2, 0..2]);
-        assert!(c1.contains(&c2), "{:?} should contain {:?}", c1, c2);
-
-        let c2 = Cube([1..2, 0..2, 0..2]);
-        assert!(c1.contains(&c2), "{:?} should contain {:?}", c1, c2);
-
-        let c2 = Cube([0..2, 0..2, 0..2]);
-        assert!(c1.contains(&c2), "{:?} should contain {:?}", c1, c2);
-
-        let c2 = Cube([1..3, 0..2, 0..2]);
-        assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
-
-        let c2 = Cube([0..2, -1..2, 0..2]);
-        assert!(!c1.contains(&c2), "{:?} shouldn't contain {:?}", c1, c2);
-    }
-
-    #[test]
-    fn test_cube_bounding() {
-        let cubes = vec![Cube([0..1, 1..2, 0..2]), Cube([1..2, 0..1, 1..3])];
-        let bound = Cube([0..2, 0..2, 0..3]);
-        assert_eq!(
-            bound,
-            Cube::bounding(cubes.iter()),
-            "{bound:?} should bound {cubes:?}",
-        );
-    }
 }
