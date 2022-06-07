@@ -21,7 +21,6 @@ fn solve_22b(steps: Vec<Step>) -> isize {
 }
 
 fn solve(steps: Vec<Step>) -> isize {
-    let total_volume = |cubes: Vec<Cube>| cubes.iter().map(Cube::volume).sum();
     match Cube::split(steps.iter().map(|step| &step.cube)) {
         // Try to solve recursively
         Some(sub_bounds) => sub_bounds
@@ -30,7 +29,10 @@ fn solve(steps: Vec<Step>) -> isize {
             .sum(),
 
         // Otherwise, solve iteratively
-        None => total_volume(steps.iter().fold(Vec::new(), Cube::apply_step)),
+        None => {
+            let cubes = steps.iter().fold(Vec::new(), Cube::apply_step);
+            cubes.iter().map(Cube::volume).sum()
+        }
     }
 }
 
@@ -40,12 +42,11 @@ type Range = ops::Range<isize>;
 struct Cube([Range; 3]);
 
 impl Cube {
-    /// Returns the voluem of this cube.
     fn volume(&self) -> isize {
         self.0.iter().map(|range| range.end - range.start).product()
     }
 
-    ///  Clamp's this to lie within the given bound bound.
+    ///  Clamps this cube to lie within the given bound.
     fn clamp(&self, Cube(bounds): &Cube) -> Option<Self> {
         let Cube(ranges) = self;
         let mut clamped_ranges = [0..0, 0..0, 0..0];
@@ -97,6 +98,7 @@ impl Cube {
             .collect()
     }
 
+    /// Applies this instruction step to a vector of cubes.
     fn apply_step(cubes: Vec<Self>, step: &Step) -> Vec<Self> {
         cubes
             .iter()
