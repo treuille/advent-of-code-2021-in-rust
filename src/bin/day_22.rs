@@ -58,7 +58,7 @@ impl Cube {
                 (i, j) if i <= bound.end && j <= bound.end => i..j,
                 (i, j) if i <= bound.end && j > bound.end => i..bound.end,
                 (i, _) if i > bound.end => return None,
-                (i, j) => unimplemented!("Impossible range: {i}..={j}"),
+                (i, j) => unimplemented!("Impossible range: {i}..{j}"),
             }
         }
         Some(Cube(clamped_ranges))
