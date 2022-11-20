@@ -15,7 +15,10 @@ sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.
 cargo install lsd
 
 # Install ripgrep 
-cargo install ripgrep
+sudo apt install ripgrep -y
+
+# Install tmux
+sudo apt install tmux -y
 
 # Install lazygit
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep '"tag_name":' |  sed -E 's/.*"v*([^"]+)".*/\1/')
