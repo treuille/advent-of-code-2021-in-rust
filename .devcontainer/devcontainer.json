@@ -1,8 +1,9 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:3",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
   "features": {
     "ghcr.io/devcontainers/features/rust:1": {
       "profile": "complete"
     }
-  }
+  },
+  "onCreateCommand": "bash .devcontainer/on_create_command.sh"
 }
