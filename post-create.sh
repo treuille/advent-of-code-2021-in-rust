@@ -15,4 +15,3 @@ echo "/home/codespace/lil_test_2.txt"
 # else
 #     # If there's no Gemfile, install Jekyll
 #     sudo gem install jekyll
-# fi
