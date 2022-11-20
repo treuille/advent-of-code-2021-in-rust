@@ -1,6 +1,6 @@
 # Just some simple tests to see how this works
 whoami > whoami_1.txt
-whoami > /home/codespace/whoami_2.txt    1  nvim 
+whoami > /home/codespace/whoami_2.txt
 
 # Install neovim 
 # sudo add-apt-repository ppa:neovim-ppa/stable
