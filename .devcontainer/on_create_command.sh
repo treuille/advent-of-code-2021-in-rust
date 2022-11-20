@@ -3,38 +3,22 @@ whoami > whoami_1.txt
 whoami > /home/codespace/whoami_2.txt
 
 # Install neovim 
-# sudo add-apt-repository ppa:neovim-ppa/stable
-# sudo apt-get update
-# sudo apt-get install neovim -Y
+sudo add-apt-repository -y ppa:neovim-ppa/stable
+sudo apt update -y
+sudo apt install neovim -y
 
 # Install: https://github.com/junegunn/vim-plug
-# sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-#     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 
-#    13  nvim 
-#    14  cd ~/
-#    15  ls -ah
-#    16  ls -lah
-#    17  cd .vim
-#    18  ls
-#    19  cd autoload/
-#    20  ls
-#    21  cd ~
-#    22  rm -rfv .vim 
-#    23  nvim 
-#    24  nvim +PlugInstall
-#    25  nvim 
-#    26  nvim ~/.config/nvim/lsp-config.lua 
-#    27  cd ~/.config/
-#    28  git status
-#    29  git commit nvim/lsp-config.lua -m "Fixed deprecation warning lsp-config.lua" 
-#    30  git push 
-#    31  sudo git push 
-#    32  gh
-#    33  gh auth 
-#    34  gh auth logn 
-#    35  gh auth login 
-#    36  echo ${GITHUB_TOKEN}
-#    37  clear
-#    38  history 
-#    39  history >> /workspaces/advent-of-code-2021/.devcontainer/on_create_command.sh 
+# Install lsd 
+cargo install lsd
+
+# Install ripgrep 
+cargo install ripgrep
+
+# Install lazygit
+LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep '"tag_name":' |  sed -E 's/.*"v*([^"]+)".*/\1/')
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+sudo tar xf lazygit.tar.gz -C /usr/local/bin lazygit
+rm -fv lazygit.tar.gz
